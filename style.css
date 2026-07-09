@@ -1,10 +1,18 @@
-body {
+footer {
+    text-align: center;
+    font-size: 0.7rem;
+    padding: 0.8rem 0;
+
+    a {
+        color: var(--accent-color);
+    }
+}
+
+main {
     display: flex;
     justify-content: center;
-    align-items: center;
-    font-family: "Open Sans", sans-serif;
-    height: 100vh;
-    padding: 0 1em;
+    flex-direction: column;
+    padding: 1.5rem 0;
 }
 
 .font-loader {
@@ -17,20 +25,21 @@ body {
 
 .render-wrapper {
     --scale-factor: 1.1;
-    border: calc(4mm * var(--scale-factor)) solid #999;
-    background-color: #999;
+    border: calc(4mm * var(--scale-factor)) solid var(--accent-color);
+    background-color: var(--accent-color);
     border-bottom-width: calc(13mm * var(--scale-factor));
     border-radius: calc(2mm * var(--scale-factor));
     width: calc(50mm * var(--scale-factor));
     position: relative;
     align-self: center;
+    flex-shrink: 0;
 
     &::before,
     &::after {
         content: "";
         display: block;
         position: absolute;
-        background: #ccc;
+        background: color-mix(in hsl, var(--accent-color) 70%, #fff 30%);
         height: calc(2.5mm * var(--scale-factor));
         width: calc(20mm * var(--scale-factor));
         border-radius: calc(3mm * var(--scale-factor));
@@ -55,43 +64,135 @@ canvas {
 form {
     /* TODO: make pretty */
 
-    padding: 0 1.5rem;
+    margin: 1.5rem 0 0 0;
     max-height: 100%;
     overflow: auto;
 
     fieldset {
-        padding: 0 0.5rem;
+        border: none;
     }
 
-    label,
-    fieldset {
-        display: block;
-        margin: 1rem 0;
-    }
-
-    [type="number"] {
-        width: 3rem;
-    }
-
-    br+input,
-    br+textarea {
+    legend {
+        color: var(--title-color);
+        margin-top: 0;
+        font-weight: bold;
+        font-size: 1.1em;
+        padding: 0;
+        float: inline-start;
         width: 100%;
-        box-sizing: border-box;
-        margin-top: 0.3rem;
+        margin-bottom: 0.7em;
+
+        & + * {
+            clear: both;
+        }
+    }
+
+    :last-child {
+        margin-bottom: 0;
     }
 }
 
-@media (max-width: 150mm) {
-    body {
-        flex-direction: column;
-        align-items: stretch;
-        height: auto;
+.setting-desc {
+    font-size: 0.7em;
+}
+
+.setting-control-textarea {
+    flex-grow: 1;
+    display: block;
+}
+
+.setting-control textarea {
+    font-family: inherit;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    background: var(--card-bg);
+    width: 100%;
+    height: 6rem;
+    box-sizing: border-box;
+    resize: vertical;
+    display: block;
+}
+
+.setting-radio-group {
+    justify-content: flex-start;
+
+    .setting-name {
+        padding: 0;
+    }
+    
+    :not(:last-child) {
+        padding-right: 1em;
+    }
+}
+
+.setting-radio-option {
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+.custom-radio-indicator {
+    --indicator-size: 1.5rem;
+    box-sizing: border-box;
+    border: 2px solid var(--font-color);
+    height: var(--indicator-size);
+    width: var(--indicator-size);
+    border-radius: var(--indicator-size);
+    margin-right: 0.4em;
+    position: relative;
+
+    &::after {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        right: 4px;
+        bottom: 4px;
+        border-radius: var(--indicator-size);
+        background-color: var(--font-color);
+        opacity: 0;
+    }
+}
+
+.setting-radio-option input:checked + .custom-radio-indicator {
+    &::after {
+        opacity: 1;
+    }
+}
+
+.setting-radio-option input:focus-visible + .custom-radio-indicator {
+    border-color: var(--accent-color);
+    outline: 1px auto;
+    outline-offset: 2px;
+}
+
+@media (min-width: 150mm) {
+    main {
+        flex-direction: row;
+        align-items: center;
         padding-top: 1.5rem;
         padding-bottom: 1.5rem;
     }
 
+    .render-wrapper {
+        align-self: flex-start;
+        position: sticky;
+        top: min(2rem, calc(100vh - 100mm * var(--scale-factor)));
+    }
+
     form {
-        padding: 1.5rem 0 0 0;
+        margin: -1rem 0 0 1.5rem;
+        flex-grow: 1;
     }
 }
 

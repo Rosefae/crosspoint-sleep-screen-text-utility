@@ -110,7 +110,12 @@ function updateRender() {
 
 function canvasToBmp() {
     // https://stackoverflow.com/questions/29652307/canvas-unable-to-generate-bmp-image-dataurl-in-chrome
-
+    
+    /*! canvas-to-bmp version 1.0 ALPHA
+    (c) 2015 Ken "Epistemex" Fyrstenberg
+    MIT License (this header required)
+    */
+    
     // Could probably modify this to be more efficient / compact since everything is grayscale and full opacity
 
     const w = c.width;
@@ -195,7 +200,7 @@ function generatePlatitude() {
         "Do the Thing"
     ];
 
-    return "✨" + platitudes[Math.floor(Math.random() * platitudes.length)] + "✨";
+    return "✨ " + platitudes[Math.floor(Math.random() * platitudes.length)] + " ✨";
 }
 
 options.elements["heading-text"].value = generatePlatitude();
