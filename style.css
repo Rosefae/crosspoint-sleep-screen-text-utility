@@ -1,0 +1,103 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Open Sans", sans-serif;
+    height: 100vh;
+    padding: 0 1em;
+}
+
+.font-loader {
+    /*  basically sr-only styles  */
+    position: absolute;
+    width: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+.render-wrapper {
+    --scale-factor: 1.1;
+    border: calc(4mm * var(--scale-factor)) solid #999;
+    background-color: #999;
+    border-bottom-width: calc(13mm * var(--scale-factor));
+    border-radius: calc(2mm * var(--scale-factor));
+    width: calc(50mm * var(--scale-factor));
+    position: relative;
+    align-self: center;
+
+    &::before,
+    &::after {
+        content: "";
+        display: block;
+        position: absolute;
+        background: #ccc;
+        height: calc(2.5mm * var(--scale-factor));
+        width: calc(20mm * var(--scale-factor));
+        border-radius: calc(3mm * var(--scale-factor));
+        top: calc(100% + 8mm * var(--scale-factor));
+    }
+
+    &::before {
+        right: calc(50% + 1.5mm * var(--scale-factor));
+    }
+
+    &::after {
+        left: calc(50% + 1.5mm * var(--scale-factor));
+    }
+}
+
+canvas {
+    width: 100%;
+    display: block;
+    border-radius: calc(1mm * var(--scale-factor));
+}
+
+form {
+    /* TODO: make pretty */
+
+    padding: 0 1.5rem;
+    max-height: 100%;
+    overflow: auto;
+
+    fieldset {
+        padding: 0 0.5rem;
+    }
+
+    label,
+    fieldset {
+        display: block;
+        margin: 1rem 0;
+    }
+
+    [type="number"] {
+        width: 3rem;
+    }
+
+    br+input,
+    br+textarea {
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 0.3rem;
+    }
+}
+
+@media (max-width: 150mm) {
+    body {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    form {
+        padding: 1.5rem 0 0 0;
+    }
+}
+
+@media (max-width: 70mm) {
+    .render-wrapper {
+        --scale-factor: calc((100vw - 2em) / 60mm);
+        /*   thank u css typed value division   */
+    }
+}

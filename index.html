@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Put text on sleep screen for Crosspoint devices</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="UTF-8">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap"
+            rel="stylesheet">
+
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>
+        <div class="font-loader">
+            <!--  force fonts to load before canvas starts drawing  -->
+            <span style="font-family: 'Sour Gummy'">Sour Gummy</span>
+            <span style="font-family: 'Bitter'">Bitter</span>
+        </div>
+        
+        <div class="render-wrapper">
+            <canvas id="render"></canvas>
+        </div>
+        <form id="options">
+            <fieldset>
+                <legend>Device</legend>
+                <label>
+                    <input type="radio" name="device" value="x3" checked>
+                    X3
+                </label>
+                <label>
+                    <input type="radio" name="device" value="x4">
+                    X4
+                </label>
+            </fieldset>
+        
+            <label>
+                <input type="checkbox" name="invert-colors">
+                Invert Colors
+            </label>
+        
+            <label>
+                Side Gutter (px)
+                <input type="number" name="h-padding" value="30">
+            </label>
+        
+            <label>
+                Top Gutter (px)
+                <input type="number" name="v-padding" value="50">
+            </label>
+        
+            <fieldset>
+                <legend>Heading</legend>
+        
+                <label>Heading Size (px)
+                    <input type="number" name="heading-size" value="48">
+                </label>
+        
+                <label>Heading Text<br>
+                    <input type="text" name="heading-text">
+                </label>
+        
+                <label>Gap Size (px)
+                    <input type="number" name="gap-size" value="40">
+                </label>
+            </fieldset>
+        
+            <fieldset>
+                <legend>Body Text</legend>
+        
+                <label>Body Text Size (px)
+                    <input type="number" name="body-size" value="32">
+                </label>
+        
+                <label>Body Line Height
+                    <input type="number" name="body-ln" value="1.6">
+                </label>
+        
+                <label>Indent Size (px)
+                    <input type="number" name="body-indent" value="-35">
+                    <br><small>Use negative number for hanging indent</small>
+                </label>
+        
+                <label>Body Text<br>
+                    <textarea name="body-text">
+&#9744; Some task
+&#9744; Some other task
+&#9744; Oh my god you have so many tasks
+&#9746; Make a dumb web utility
+&#9744; Now with word wrap and hanging indentation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. etc etc
+              </textarea>
+                </label>
+            </fieldset>
+        
+            <button type="button" id="download">Save File</button>
+            <!--  if I add this to the crosspoint.local web interface, this button would save sleep.bmp directly to the root of the SD card  -->
+        </form>
+
+        <script src="script.js"></script>
+    </body>
+</html>
