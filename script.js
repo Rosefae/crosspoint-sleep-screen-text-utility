@@ -50,8 +50,6 @@ function updateRender() {
     const indentSizeRaw = parseFloat(options.elements["body-indent"].value),
         firstLineIndent = indentSizeRaw > 0 ? indentSizeRaw : 0,
         hangingIndent = indentSizeRaw < 0 ? indentSizeRaw * -1 : 0;
-    console.log(indentSizeRaw);
-
 
     // Draw text
     const maxLineWidth = c.width - 2 * paddingSize;

@@ -159,12 +159,16 @@ form {
         border-radius: var(--indicator-size);
         background-color: var(--font-color);
         opacity: 0;
+        transform: scale(0.5);
+        transition: 0.2s;
+        transition-property: opacity, transform;
     }
 }
 
 .setting-radio-option input:checked + .custom-radio-indicator {
     &::after {
         opacity: 1;
+        transform: scale(1);
     }
 }
 
