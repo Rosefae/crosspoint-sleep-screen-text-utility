@@ -127,6 +127,7 @@ function updateRender() {
 
     ctx.globalCompositeOperation = "destination-over";
     let filePicker = options.elements["bg-img-file"],
+        bgImgOpacityInput = options.elements["bg-img-opacity"],
         bgImgHposSelect = options.elements["bg-img-hpos"],
         bgImgVposSelect = options.elements["bg-img-vpos"],
         bgImgStretch = options.elements["bg-img-stretch"],
@@ -134,6 +135,7 @@ function updateRender() {
     if (options.elements["use-bg-img"].checked) {
         // enable bg img controls
         filePicker.disabled = false;
+        bgImgOpacityInput.disabled = false;
         bgImgHposSelect.disabled = false;
         bgImgVposSelect.disabled = false;
         bgImgStretch.disabled = false;
@@ -146,6 +148,7 @@ function updateRender() {
     else {
         // disable bg img controls
         filePicker.disabled = true;
+        bgImgOpacityInput.disabled = true;
         bgImgHposSelect.disabled = true;
         bgImgVposSelect.disabled = true;
         bgImgStretch.disabled = true;
@@ -211,7 +214,8 @@ function updateRender() {
     }
 
     function drawBackgroundImg(img) {
-        const imgW = img.width,
+        const imgOpacity = parseFloat(bgImgOpacityInput.value),
+            imgW = img.width,
             imgH = img.height,
             hpos = bgImgHposSelect.value,
             vpos = bgImgVposSelect.value,
@@ -303,7 +307,9 @@ function updateRender() {
                 break;
         }
 
+        ctx.globalAlpha = imgOpacity;
         ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.globalAlpha = 1;
 
         function getStretchFactor(stretchType, dimensionType) {
             let canvasDimension, imgDimension;
