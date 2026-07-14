@@ -178,7 +178,11 @@ form {
     outline-offset: 2px;
 }
 
-.setting-name:has(+ .setting-control > :disabled){
+.setting-row > * {
+    transition: opacity 0.2s;
+}
+
+.setting-row:has(:disabled) > * {
     opacity: 0.5;
 }
 

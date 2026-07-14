@@ -75,15 +75,30 @@ function updateRender() {
     // Draw background last as the async image loading can otherwise make layering unpredictable
 
     ctx.globalCompositeOperation = "destination-over";
-    let filePicker = options.elements["bg-img-file"];
+    let filePicker = options.elements["bg-img-file"],
+        bgImgHposSelect = options.elements["bg-img-hpos"],
+        bgImgVposSelect = options.elements["bg-img-vpos"],
+        bgImgStretch = options.elements["bg-img-stretch"],
+        bgImgRatioToggle = options.elements["bg-img-ratio"];
     if (options.elements["use-bg-img"].checked) {
         // enable bg img controls
         filePicker.disabled = false;
+        bgImgHposSelect.disabled = false;
+        bgImgVposSelect.disabled = false;
+        bgImgStretch.disabled = false;
+        bgImgRatioToggle.disabled = false;
+
+        if (bgImgStretch.value == "none") bgImgRatioToggle.disabled = true;
+
         handleBackgroundImg();
     }
     else {
         // disable bg img controls
         filePicker.disabled = true;
+        bgImgHposSelect.disabled = true;
+        bgImgVposSelect.disabled = true;
+        bgImgStretch.disabled = true;
+        bgImgRatioToggle.disabled = true;
         fillBackgroundColor();
     }
 
@@ -136,7 +151,7 @@ function updateRender() {
             let img = new Image();
             img.src = e.target.result;
             img.onload = () => {
-                drawBackgroundImg(img, "center", "center");
+                drawBackgroundImg(img);
                 fillBackgroundColor();
             }
         }
@@ -144,31 +159,84 @@ function updateRender() {
         reader.readAsDataURL(file);
     }
 
-    function drawBackgroundImg(img, hpos, vpos, preserveRatio = true) {
-        // TODO: get image width and height
-        const imgW = img.width, imgH = img.height;
+    function drawBackgroundImg(img) {
+        const imgW = img.width,
+            imgH = img.height,
+            hpos = bgImgHposSelect.value,
+            vpos = bgImgVposSelect.value,
+            stretch = bgImgStretch.value,
+            preserveRatio = bgImgRatioToggle.checked;
 
         let dx, dy,
             dw = imgW,
             dh = imgH;
+
+        switch (stretch) {
+            case "stretch-h": {
+                let stretchFactor = getStretchFactor("stretch", "width");
+                dw = imgW * stretchFactor;
+                if (preserveRatio) dh = imgH * stretchFactor;
+                break;
+            }
+            case "stretch-v": {
+                let stretchFactor = getStretchFactor("stretch", "height");
+                dh = imgH * stretchFactor;
+                if (preserveRatio) dw = imgH * stretchFactor;
+                break;
+            }
+            case "stretch-hv": {
+                let hStretchFactor = getStretchFactor("stretch", "width");
+                let vStretchFactor = getStretchFactor("stretch", "height");
+
+                if (preserveRatio) {
+                    let finalStretchFactor = Math.max(hStretchFactor, vStretchFactor);
+                    dh = imgH * finalStretchFactor;
+                    dw = imgW * finalStretchFactor;
+                }
+                else {
+                    dh = imgH * vStretchFactor;
+                    dw = imgW * hStretchFactor;
+                }
+                break;
+            }
+            case "shrink-h": {
+                let stretchFactor = getStretchFactor("shrink", "width");
+                dw = imgW * stretchFactor;
+                if (preserveRatio) dh = imgH * stretchFactor;
+                break;
+            }
+            case "shrink-v": {
+                let stretchFactor = getStretchFactor("shrink", "height");
+                dh = imgH * stretchFactor;
+                if (preserveRatio) dw = imgH * stretchFactor;
+                break;
+            }
+            case "shrink-hv": {
+                let hStretchFactor = getStretchFactor("shrink", "width");
+                let vStretchFactor = getStretchFactor("shrink", "height");
+
+                if (preserveRatio) {
+                    let finalStretchFactor = Math.min(hStretchFactor, vStretchFactor);
+                    dh = imgH * finalStretchFactor;
+                    dw = imgW * finalStretchFactor;
+                }
+                else {
+                    dh = imgH * vStretchFactor;
+                    dw = imgW * hStretchFactor;
+                }
+                break;
+            }
+        }
         
         switch (hpos) {
             case "left":
                 dx = 0;
                 break;
             case "center":
-                dx = (c.width - imgW) / 2;
+                dx = (c.width - dw) / 2;
                 break;
             case "right":
-                dx = c.width - imgW;
-                break;
-            case "stretch":
-                dx = 0;
-                dw = Math.max(c.width, dw);
-                break;
-            case "shrink":
-                dx = 0;
-                dw = Math.min(c.width, dw);
+                dx = c.width - dw;
                 break;
         }
 
@@ -177,24 +245,34 @@ function updateRender() {
                 dy = 0;
                 break;
             case "center":
-                dy = (c.height - imgH) / 2;
+                dy = (c.height - dh) / 2;
                 break;
             case "bottom":
-                dy = c.height - imgH;
-                break;
-            case "stretch":
-                dy = 0;
-                dh = Math.max(c.height, dh);
-                break;
-            case "shrink":
-                dy = 0;
-                dh = Math.min(c.height, dh);
+                dy = c.height - dh;
                 break;
         }
 
-        console.log(dx, dy, dw, dh);
-
         ctx.drawImage(img, dx, dy, dw, dh);
+
+        function getStretchFactor(stretchType, dimensionType) {
+            let canvasDimension, imgDimension;
+
+            if (dimensionType == "width") {
+                canvasDimension = c.width;
+                imgDimension = imgW;
+            }
+            else if (dimensionType == "height") {
+                canvasDimension = c.height;
+                imgDimension = imgH;
+            }
+
+            if (stretchType == "stretch") {
+                return Math.max(1, canvasDimension / imgDimension);
+            }
+            else if (stretchType == "shrink") {
+                return Math.min(1, canvasDimension / imgDimension);
+            }
+        }
     }
 }
 
