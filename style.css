@@ -178,6 +178,10 @@ form {
     outline-offset: 2px;
 }
 
+.setting-name:has(+ .setting-control > :disabled){
+    opacity: 0.5;
+}
+
 @media (min-width: 150mm) {
     main {
         flex-direction: row;

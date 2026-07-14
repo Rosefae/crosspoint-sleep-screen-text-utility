@@ -36,10 +36,6 @@ function updateRender() {
         var fgColor = "black";
     }
 
-    // Draw background
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, c.width, c.height);
-
     // Get Sizes
     const paddingSize = parseFloat(options.elements["h-padding"].value);
     const vPaddingSize = parseFloat(options.elements["v-padding"].value);
@@ -76,6 +72,23 @@ function updateRender() {
         writeLineWithWrap(line, bodySize, bodyLineHeight, paddingSize, true);
     }
 
+    // Draw background last as the async image loading can otherwise make layering unpredictable
+
+    ctx.globalCompositeOperation = "destination-over";
+    let filePicker = options.elements["bg-img-file"];
+    if (options.elements["use-bg-img"].checked) {
+        // enable bg img controls
+        filePicker.disabled = false;
+        handleBackgroundImg();
+    }
+    else {
+        // disable bg img controls
+        filePicker.disabled = true;
+        fillBackgroundColor();
+    }
+
+    // Helper functions
+
     function writeLineWithWrap(text, textSize, lineHeight, startXPos, indent = false) {
         const words = text.split(" ");
         var currLine = words[0];
@@ -103,6 +116,85 @@ function updateRender() {
             ctx.fillText(currLine, startXPos + currIndent, currVPos);
             currVPos += textSize * lineHeight;
         }
+    }
+
+    function fillBackgroundColor() {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, c.width, c.height);
+    }
+
+    function handleBackgroundImg() {
+        const file = filePicker.files[0];
+
+        if (!file) {
+            fillBackgroundColor();
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            let img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                drawBackgroundImg(img, "center", "center");
+                fillBackgroundColor();
+            }
+        }
+
+        reader.readAsDataURL(file);
+    }
+
+    function drawBackgroundImg(img, hpos, vpos, preserveRatio = true) {
+        // TODO: get image width and height
+        const imgW = img.width, imgH = img.height;
+
+        let dx, dy,
+            dw = imgW,
+            dh = imgH;
+        
+        switch (hpos) {
+            case "left":
+                dx = 0;
+                break;
+            case "center":
+                dx = (c.width - imgW) / 2;
+                break;
+            case "right":
+                dx = c.width - imgW;
+                break;
+            case "stretch":
+                dx = 0;
+                dw = Math.max(c.width, dw);
+                break;
+            case "shrink":
+                dx = 0;
+                dw = Math.min(c.width, dw);
+                break;
+        }
+
+        switch (vpos) {
+            case "top":
+                dy = 0;
+                break;
+            case "center":
+                dy = (c.height - imgH) / 2;
+                break;
+            case "bottom":
+                dy = c.height - imgH;
+                break;
+            case "stretch":
+                dy = 0;
+                dh = Math.max(c.height, dh);
+                break;
+            case "shrink":
+                dy = 0;
+                dh = Math.min(c.height, dh);
+                break;
+        }
+
+        console.log(dx, dy, dw, dh);
+
+        ctx.drawImage(img, dx, dy, dw, dh);
     }
 }
 
