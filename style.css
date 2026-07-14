@@ -90,6 +90,10 @@ form {
     }
 }
 
+.setting-row {
+    min-height: 2rem;
+}
+
 .setting-desc {
     font-size: 0.7em;
 }

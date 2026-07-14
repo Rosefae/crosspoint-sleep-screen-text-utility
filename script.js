@@ -43,9 +43,17 @@ function updateRender() {
     const gapSize = parseFloat(options.elements["gap-size"].value);
     const bodySize = parseFloat(options.elements["body-size"].value);
     const bodyLineHeight = parseFloat(options.elements["body-ln"].value);
-    const indentSizeRaw = parseFloat(options.elements["body-indent"].value),
-        firstLineIndent = indentSizeRaw > 0 ? indentSizeRaw : 0,
-        hangingIndent = indentSizeRaw < 0 ? indentSizeRaw * -1 : 0;
+    const bodyAlign = options.elements["body-align"].value;
+
+    // don't indent centered text
+    let indentSizeRaw = 0;
+    if (options.elements["body-align"].value == "center") {
+        options.elements["body-indent"].disabled = true;
+    }
+    else {
+        options.elements["body-indent"].disabled = false;
+        indentSizeRaw = parseFloat(options.elements["body-indent"].value);
+    }
 
     // Draw text
     const maxLineWidth = c.width - 2 * paddingSize;
@@ -56,20 +64,63 @@ function updateRender() {
     // Heading text
     const headingText = options.elements["heading-text"].value;
     ctx.font = `bold ${headingSize}px Sour Gummy`;
-    ctx.textAlign = "center";
-    writeLineWithWrap(headingText, headingSize, 1, c.width / 2);
+    let headingXPos;
+    switch (options.elements["heading-align"].value) {
+        case "left":
+            ctx.textAlign = "left";
+            headingXPos = paddingSize;
+            break;
+        case "center":
+            ctx.textAlign = "center";
+            headingXPos = c.width / 2;
+            break;
+        case "right":
+            ctx.textAlign = "right";
+            headingXPos = c.width - paddingSize;
+            break;
+    }
+    writeLineWithWrap(headingText, headingSize, 1, headingXPos);
 
     // Body text
     const bodyText = options.elements["body-text"].value;
     ctx.font = `${bodySize}px Bitter`;
-    ctx.textAlign = "left";
+
+    let bodyXPos,
+        firstLineIndent = 0,
+        hangingIndent = 0;
+    switch (options.elements["body-align"].value) {
+        case "left":
+            ctx.textAlign = "left";
+            bodyXPos = paddingSize;
+            if (indentSizeRaw > 0) {
+                firstLineIndent = indentSizeRaw;
+            }
+            else {
+                hangingIndent = indentSizeRaw * -1;
+            }
+            break;
+        case "center":
+            ctx.textAlign = "center";
+            bodyXPos = c.width / 2;
+            break;
+        case "right":
+            ctx.textAlign = "right";
+            bodyXPos = c.width - paddingSize;
+            if (indentSizeRaw > 0) {
+                firstLineIndent = indentSizeRaw * -1;
+            }
+            else {
+                hangingIndent = indentSizeRaw;
+            }
+            break;
+    }
 
     currVPos += gapSize;
 
     // handle line break chars by rendering each line separately
     const bodyLines = bodyText.split(/\r?\n/);
     for (const line of bodyLines) {
-        writeLineWithWrap(line, bodySize, bodyLineHeight, paddingSize, true);
+        writeLineWithWrap(line, bodySize, bodyLineHeight, bodyXPos, true);
     }
 
     // Draw background last as the async image loading can otherwise make layering unpredictable
@@ -112,7 +163,7 @@ function updateRender() {
         for (const word of words.slice(1)) {
             let testLine = currLine + " " + word;
             let width = ctx.measureText(testLine).width;
-            if (width > maxLineWidth - currIndent) {
+            if (width > maxLineWidth - Math.abs(currIndent)) {
                 // if this word would overflow the line, draw what we already have and start a new line
                 writeCurrLine();
                 currLine = word;
