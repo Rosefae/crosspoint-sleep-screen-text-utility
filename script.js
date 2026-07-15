@@ -1,16 +1,28 @@
 const c = document.getElementById("render");
 const ctx = c.getContext("2d");
 
-const options = document.forms[0];
+const settingsForm = document.forms[0];
 const downloadBtn = document.getElementById("download");
+const uploadBtn = document.getElementById("upload");
+
+const bodyIndentInput = settingsForm.elements["body-indent"],
+    filePicker = settingsForm.elements["bg-img-file"],
+    bgImgOpacityInput = settingsForm.elements["bg-img-opacity"],
+    bgImgHposSelect = settingsForm.elements["bg-img-hpos"],
+    bgImgVposSelect = settingsForm.elements["bg-img-vpos"],
+    bgImgStretch = settingsForm.elements["bg-img-stretch"],
+    bgImgRatioToggle = settingsForm.elements["bg-img-ratio"];
+
+let currentSettings = {};
 
 function updateRender() {
+    updateSettingsFromForm();
     console.log("Updating Canvas");
     // Clear canvas
     ctx.clearRect(0, 0, c.width, c.height);
 
     // Set size
-    switch (options.elements["device"].value) {
+    switch (currentSettings["device"]) {
         case "x3":
             c.width = 528;
             c.height = 792;
@@ -19,40 +31,40 @@ function updateRender() {
             c.width = 480;
             c.height = 800;
             break;
+        default:
+            invalidValueError("device", currentSettings["device"]);
     }
 
     // Grayscale
     ctx.filter = "grayscale(100)";
 
     // Set colors
-    if (options.elements["invert-colors"].checked) {
-        c.classList.add("inverted");
+    if (currentSettings["invert-colors"]) {
         var bgColor = "black";
         var fgColor = "white";
     }
     else {
-        c.classList.remove("inverted");
         var bgColor = "white";
         var fgColor = "black";
     }
 
     // Get Sizes
-    const paddingSize = parseFloat(options.elements["h-padding"].value);
-    const vPaddingSize = parseFloat(options.elements["v-padding"].value);
-    const headingSize = parseFloat(options.elements["heading-size"].value);
-    const gapSize = parseFloat(options.elements["gap-size"].value);
-    const bodySize = parseFloat(options.elements["body-size"].value);
-    const bodyLineHeight = parseFloat(options.elements["body-ln"].value);
-    const bodyAlign = options.elements["body-align"].value;
+    const paddingSize = currentSettings["h-padding"];
+    const vPaddingSize = currentSettings["v-padding"];
+    const headingSize = currentSettings["heading-size"];
+    const gapSize = currentSettings["gap-size"];
+    const bodySize = currentSettings["body-size"];
+    const bodyLineHeight = currentSettings["body-ln"];
+    const bodyAlign = currentSettings["body-align"];
 
     // don't indent centered text
     let indentSizeRaw = 0;
-    if (options.elements["body-align"].value == "center") {
-        options.elements["body-indent"].disabled = true;
+    if (currentSettings["body-align"] == "center") {
+        bodyIndentInput.disabled = true;
     }
     else {
-        options.elements["body-indent"].disabled = false;
-        indentSizeRaw = parseFloat(options.elements["body-indent"].value);
+        bodyIndentInput.disabled = false;
+        indentSizeRaw = currentSettings["body-indent"];
     }
 
     // Draw text
@@ -62,10 +74,10 @@ function updateRender() {
     ctx.textBaseline = "top";
 
     // Heading text
-    const headingText = options.elements["heading-text"].value;
+    const headingText = currentSettings["heading-text"];
     ctx.font = `bold ${headingSize}px Sour Gummy`;
     let headingXPos;
-    switch (options.elements["heading-align"].value) {
+    switch (currentSettings["heading-align"]) {
         case "left":
             ctx.textAlign = "left";
             headingXPos = paddingSize;
@@ -78,17 +90,19 @@ function updateRender() {
             ctx.textAlign = "right";
             headingXPos = c.width - paddingSize;
             break;
+        default:
+            invalidValueError("Heading text alignment", currentSettings["heading-text"]);
     }
     writeLineWithWrap(headingText, headingSize, 1, headingXPos);
 
     // Body text
-    const bodyText = options.elements["body-text"].value;
+    const bodyText = currentSettings["body-text"];
     ctx.font = `${bodySize}px Bitter`;
 
     let bodyXPos,
         firstLineIndent = 0,
         hangingIndent = 0;
-    switch (options.elements["body-align"].value) {
+    switch (currentSettings["body-align"]) {
         case "left":
             ctx.textAlign = "left";
             bodyXPos = paddingSize;
@@ -113,6 +127,8 @@ function updateRender() {
                 hangingIndent = indentSizeRaw;
             }
             break;
+        default:
+            invalidValueError("Body text alignment", currentSettings["body-align"]);
     }
 
     currVPos += gapSize;
@@ -126,13 +142,8 @@ function updateRender() {
     // Draw background last as the async image loading can otherwise make layering unpredictable
 
     ctx.globalCompositeOperation = "destination-over";
-    let filePicker = options.elements["bg-img-file"],
-        bgImgOpacityInput = options.elements["bg-img-opacity"],
-        bgImgHposSelect = options.elements["bg-img-hpos"],
-        bgImgVposSelect = options.elements["bg-img-vpos"],
-        bgImgStretch = options.elements["bg-img-stretch"],
-        bgImgRatioToggle = options.elements["bg-img-ratio"];
-    if (options.elements["use-bg-img"].checked) {
+
+    if (currentSettings["use-bg-img"]) {
         // enable bg img controls
         filePicker.disabled = false;
         bgImgOpacityInput.disabled = false;
@@ -155,6 +166,8 @@ function updateRender() {
         bgImgRatioToggle.disabled = true;
         fillBackgroundColor();
     }
+
+    saveSettingsToLocalStorage();
 
     // Helper functions
 
@@ -214,19 +227,21 @@ function updateRender() {
     }
 
     function drawBackgroundImg(img) {
-        const imgOpacity = parseFloat(bgImgOpacityInput.value),
+        const imgOpacity = currentSettings["bg-img-opacity"],
             imgW = img.width,
             imgH = img.height,
-            hpos = bgImgHposSelect.value,
-            vpos = bgImgVposSelect.value,
-            stretch = bgImgStretch.value,
-            preserveRatio = bgImgRatioToggle.checked;
+            hpos = currentSettings["bg-img-hpos"],
+            vpos = currentSettings["bg-img-vpos"],
+            stretch = currentSettings["bg-img-stretch"],
+            preserveRatio = currentSettings["bg-img-ratio"];
 
         let dx, dy,
             dw = imgW,
             dh = imgH;
 
         switch (stretch) {
+            case "none":
+                break;
             case "stretch-h": {
                 let stretchFactor = getStretchFactor("stretch", "width");
                 dw = imgW * stretchFactor;
@@ -281,6 +296,8 @@ function updateRender() {
                 }
                 break;
             }
+            default:
+                invalidValueError("BG image stretch", stretch);
         }
         
         switch (hpos) {
@@ -293,6 +310,8 @@ function updateRender() {
             case "right":
                 dx = c.width - dw;
                 break;
+            default:
+                invalidValueError("BG image hpos", hpos);
         }
 
         switch (vpos) {
@@ -305,6 +324,8 @@ function updateRender() {
             case "bottom":
                 dy = c.height - dh;
                 break;
+            default:
+                invalidValueError("BG image vpos", vpos);
         }
 
         ctx.globalAlpha = imgOpacity;
@@ -322,12 +343,18 @@ function updateRender() {
                 canvasDimension = c.height;
                 imgDimension = imgH;
             }
+            else {
+                invalidValueError("dimensionType", dimensionType);
+            }
 
             if (stretchType == "stretch") {
                 return Math.max(1, canvasDimension / imgDimension);
             }
             else if (stretchType == "shrink") {
                 return Math.min(1, canvasDimension / imgDimension);
+            }
+            else {
+                invalidValueError("stretchType", stretchType);
             }
         }
     }
@@ -415,6 +442,74 @@ function downloadBmp() {
     link.click();
 }
 
+function uploadBmp() {
+    // Check device status http://crosspoint.local/api/status
+    // if not connected, prompt user to connect "Device not connected"
+
+    // Generate bitmap file
+    const bmp = canvasToBmp();
+    const url = URL.createObjectURL(bmp);
+
+    // POST /upload
+}
+
+function showMessage(message, messageType) {
+    // TODO: turn into a nice toast instead
+    window.alert(messageType + ": " + message);
+}
+
+function invalidValueError(property, value) {
+    let message = `Invalid ${property} value: ${value}`;
+    showMessage(message, "error");
+}
+
+function updateSettingsFromForm() {
+    let settings = {};
+
+    for (const fieldName in settingsForm.elements) {
+        if (!isNaN(fieldName)) continue;
+        if (fieldName === "length") continue;
+        if (fieldName === "item") continue;
+        if (fieldName === "namedItem") continue;
+        // skip indexes and built-in properties/functions
+
+        const field = settingsForm.elements[fieldName];
+
+        if (field instanceof Element && field.tagName.toLowerCase() == "button") continue;
+        // skip buttons
+
+        if (fieldName === "bg-img-file") {
+            // it gets the special treatment
+        }
+
+        if (field instanceof Element) {
+            switch (field.getAttribute("type")?.toLowerCase()) {
+                case "checkbox":
+                    settings[fieldName] = field.checked;
+                    continue;
+                case "number":
+                    settings[fieldName] = parseFloat(field.value);
+                    continue;
+            }
+        }
+
+        settings[fieldName] = field.value;
+
+    }
+
+    currentSettings = settings;
+}
+
+function saveSettingsToLocalStorage() {
+    console.log("TODO: actually save settings to localStorage");
+}
+
+function getSettingsFromLocalStorage() {
+    const defaultSettings = {
+        
+    }
+}
+
 function generatePlatitude() {
     const platitudes = [
         "Now or Never",
@@ -428,10 +523,10 @@ function generatePlatitude() {
     return "✨ " + platitudes[Math.floor(Math.random() * platitudes.length)] + " ✨";
 }
 
-options.elements["heading-text"].value = generatePlatitude();
+settingsForm.elements["heading-text"].value = generatePlatitude();
 
 window.onload = (() => {
     updateRender();
-    options.addEventListener("change", updateRender);
+    settingsForm.addEventListener("change", updateRender);
     downloadBtn.addEventListener("click", downloadBmp);
 });

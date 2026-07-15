@@ -9,4 +9,5 @@ This is meant to be a standalone web utility that generates the `sleep.bmp` file
 ## Possible future features
 
 - Font drop down to select different fonts. Probably just a small list of different fonts instead of polling the whole of Google Fonts.
-- Ability to add a background image under the text?
+- Upload directly to device (if connected)
+- Store prev settings in localstorage
