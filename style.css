@@ -190,6 +190,30 @@ form {
     opacity: 0.5;
 }
 
+.opts-bg {
+    .setting-row {
+        transition: 0.2s;
+        transition-property: visibility, max-height, opacity, padding;
+        overflow: hidden;
+        max-height: 32rem;
+        min-height: 0;
+    }
+
+    &.collapse {
+        > .setting-row:not(.setting-row--use-bg) {
+            visibility: hidden;
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        > .setting-row--use-bg {
+            border-bottom: none;
+        }
+    }
+}
+
 #bg-img-preview {
     display: none;
     margin: 0 auto 0.3rem;

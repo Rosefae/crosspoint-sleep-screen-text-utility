@@ -27,6 +27,8 @@ const settingsForm = document.forms[0],
 const downloadBtn = document.getElementById("download");
 const uploadBtn = document.getElementById("upload");
 
+const bgFieldset = document.getElementById("bg-fieldset");
+
 const bodyIndentInput = settingsFields["body-indent"],
     filePicker = settingsFields["bg-img-file"],
     bgImgPreview = document.getElementById("bg-img-preview"),
@@ -177,6 +179,8 @@ function updateRender() {
 
         if (bgImgStretch.value == "none") bgImgRatioToggle.disabled = true;
 
+        bgFieldset.classList.remove("collapse");
+
         handleBackgroundImg();
     }
     else {
@@ -187,6 +191,9 @@ function updateRender() {
         bgImgVposSelect.disabled = true;
         bgImgStretch.disabled = true;
         bgImgRatioToggle.disabled = true;
+
+        bgFieldset.classList.add("collapse");
+
         fillBackgroundColor();
     }
 
@@ -574,7 +581,7 @@ function updateFormFromLocalStorage() {
         "body-ln": 1.6,
         "body-align": "left",
         "body-indent": -35,
-        "body-text": "☐ Some task\n☐ Some other task\n☐ Oh my god you have so many tasks\n☒ Make a dumb web utility\n☐ Now with word wrap and hanging indentation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. etc etc\n                            "
+        "body-text": "☐ Some task\n☐ Some other task\n☐ Oh my god you have so many tasks\n☒ Make a dumb web utility\n☐ Now with word wrap and hanging indentation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. etc etc"
     }
 
     // fetch from localstorage

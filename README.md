@@ -10,4 +10,3 @@ This is meant to be a standalone web utility that generates the `sleep.bmp` file
 
 - Font drop down to select different fonts. Probably just a small list of different fonts instead of polling the whole of Google Fonts.
 - Upload directly to device (if connected)
-- Collapse Background Image section if toggled off
