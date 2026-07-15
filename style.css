@@ -190,6 +190,18 @@ form {
     opacity: 0.5;
 }
 
+#bg-img-preview {
+    display: none;
+    margin: 0 auto 0.3rem;
+    max-width: 20rem;
+    max-height: 10rem;
+    object-fit: scale-down;
+
+    &[src] {
+        display: block;
+    }
+}
+
 @media (min-width: 150mm) {
     main {
         flex-direction: row;

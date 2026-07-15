@@ -77,72 +77,6 @@
                         </span>
                     </label>
                 </fieldset>
-
-                <fieldset class="opts-bg card">
-                    <legend>Background Image</legend>
-                    <label class="setting-row">
-                        <span class="setting-name">Use Background Image</span>
-                        <span class="toggle-switch">
-                            <input type="checkbox" name="use-bg-img">
-                            <span class="toggle-slider"></span>
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Image File</span>
-                        <span class="setting-control">
-                            <input type="file" name="bg-img-file" accept="image/*">
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Image Opacity
-                            <span class="setting-desc">Images that are too light will not show up correctly</span>
-                        </span>
-                        <span class="setting-control">
-                            <input type="number" name="bg-img-opacity">
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Horizontal Position</span>
-                        <span class="setting-control">
-                            <select name="bg-img-hpos">
-                                <option value="left">Left</option>
-                                <option value="center">Center</option>
-                                <option value="right">Right</option>
-                            </select>
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Vertical Position</span>
-                        <span class="setting-control">
-                            <select name="bg-img-vpos">
-                                <option value="top">Top</option>
-                                <option value="center">Center</option>
-                                <option value="bottom">Bottom</option>
-                            </select>
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Stretch to Fill / Shrink to Fit</span>
-                        <span class="setting-control">
-                            <select name="bg-img-stretch">
-                                <option value="none">None</option>
-                                <option value="stretch-h">Stretch Horizontal</option>
-                                <option value="stretch-v">Stretch Vertical</option>
-                                <option value="stretch-hv">Stretch Both</option>
-                                <option value="shrink-h">Shrink Horizontal</option>
-                                <option value="shrink-v">Shrink Vertical</option>
-                                <option value="shrink-hv">Shrink Both</option>
-                            </select>
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Keep Aspect Ratio</span>
-                        <span class="toggle-switch">
-                            <input type="checkbox" name="bg-img-ratio">
-                            <span class="toggle-slider"></span>
-                        </span>
-                    </label>
-                </fieldset>
             
                 <fieldset class="opts-heading card">
                     <legend>Heading</legend>
@@ -222,6 +156,73 @@
                         <span class="setting-name">Body Text</span>
                         <span class="setting-control setting-control-textarea">
                             <textarea name="body-text"></textarea>
+                        </span>
+                    </label>
+                </fieldset>
+
+                <fieldset class="opts-bg card">
+                    <legend>Background Image</legend>
+                    <label class="setting-row">
+                        <span class="setting-name">Use Background Image</span>
+                        <span class="toggle-switch">
+                            <input type="checkbox" name="use-bg-img">
+                            <span class="toggle-slider"></span>
+                        </span>
+                    </label>
+                    <label class="setting-row">
+                        <span class="setting-name">Image File</span>
+                        <span class="setting-control">
+                            <img id="bg-img-preview" alt="Current background image">
+                            <input type="file" name="bg-img-file" accept="image/*">
+                        </span>
+                    </label>
+                    <label class="setting-row">
+                        <span class="setting-name">Image Opacity
+                            <span class="setting-desc">Images that are too light will not show up correctly</span>
+                        </span>
+                        <span class="setting-control">
+                            <input type="number" name="bg-img-opacity">
+                        </span>
+                    </label>
+                    <label class="setting-row">
+                        <span class="setting-name">Horizontal Position</span>
+                        <span class="setting-control">
+                            <select name="bg-img-hpos">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </span>
+                    </label>
+                    <label class="setting-row">
+                        <span class="setting-name">Vertical Position</span>
+                        <span class="setting-control">
+                            <select name="bg-img-vpos">
+                                <option value="top">Top</option>
+                                <option value="center">Center</option>
+                                <option value="bottom">Bottom</option>
+                            </select>
+                        </span>
+                    </label>
+                    <label class="setting-row">
+                        <span class="setting-name">Stretch to Fill / Shrink to Fit</span>
+                        <span class="setting-control">
+                            <select name="bg-img-stretch">
+                                <option value="none">None</option>
+                                <option value="stretch-h">Stretch Horizontal</option>
+                                <option value="stretch-v">Stretch Vertical</option>
+                                <option value="stretch-hv">Stretch Both</option>
+                                <option value="shrink-h">Shrink Horizontal</option>
+                                <option value="shrink-v">Shrink Vertical</option>
+                                <option value="shrink-hv">Shrink Both</option>
+                            </select>
+                        </span>
+                    </label>
+                    <label class="setting-row">
+                        <span class="setting-name">Keep Aspect Ratio</span>
+                        <span class="toggle-switch">
+                            <input type="checkbox" name="bg-img-ratio">
+                            <span class="toggle-slider"></span>
                         </span>
                     </label>
                 </fieldset>

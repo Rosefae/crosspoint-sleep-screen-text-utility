@@ -29,6 +29,7 @@ const uploadBtn = document.getElementById("upload");
 
 const bodyIndentInput = settingsFields["body-indent"],
     filePicker = settingsFields["bg-img-file"],
+    bgImgPreview = document.getElementById("bg-img-preview"),
     bgImgOpacityInput = settingsFields["bg-img-opacity"],
     bgImgHposSelect = settingsFields["bg-img-hpos"],
     bgImgVposSelect = settingsFields["bg-img-vpos"],
@@ -228,30 +229,40 @@ function updateRender() {
     }
 
     function handleBackgroundImg() {
-        const file = filePicker.files[0];
-
-        if (!file) {
+        bgImgPreview.onload = () => {
+            console.log("Updating Background Image");
+            drawBackgroundImg();
             fillBackgroundColor();
+
+            // save image data once image has loaded and drawn correctly
+            currentSettings["bg-img-data"] = bgImgPreview.src;
+            saveSettingsToLocalStorage();
+        }
+
+        // if new file
+        const file = filePicker.files[0];
+        if (file) {
+            updateBgImgData(file);
+            return;
+        }
+        
+        // otherwise existing data
+        const imgData = bgImgPreview.src;
+        if (imgData) {
+            bgImgPreview.src = imgData; // reload the image
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            let img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                drawBackgroundImg(img);
-                fillBackgroundColor();
-            }
-        }
+        // otherwise just draw the bg color
+        fillBackgroundColor();
 
-        reader.readAsDataURL(file);
     }
 
-    function drawBackgroundImg(img) {
-        const imgOpacity = currentSettings["bg-img-opacity"],
-            imgW = img.width,
-            imgH = img.height,
+    function drawBackgroundImg() {
+        const img = bgImgPreview,
+            imgOpacity = currentSettings["bg-img-opacity"],
+            imgW = img.naturalWidth,
+            imgH = img.naturalHeight,
             hpos = currentSettings["bg-img-hpos"],
             vpos = currentSettings["bg-img-vpos"],
             stretch = currentSettings["bg-img-stretch"],
@@ -382,6 +393,16 @@ function updateRender() {
     }
 }
 
+function updateBgImgData(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        let imgData = e.target.result;
+        bgImgPreview.src = imgData;
+    }
+
+    reader.readAsDataURL(file);
+}
+
 function canvasToBmp() {
     // https://stackoverflow.com/questions/29652307/canvas-unable-to-generate-bmp-image-dataurl-in-chrome
     
@@ -507,21 +528,19 @@ function getSettingsFromForm() {
     let newSettings = {};
 
     for (const fieldName in settingsFields) {
-        let field = settingsFields[fieldName];
+        let field = settingsFields[fieldName],
+            fieldType = getFormFieldType(field);
 
-        if (fieldName === "bg-img-file") {
-            // it gets the special treatment
-        }
-
-        if (field instanceof Element) {
-            switch (field.getAttribute("type")?.toLowerCase()) {
-                case "checkbox":
-                    newSettings[fieldName] = field.checked;
-                    continue;
-                case "number":
-                    newSettings[fieldName] = parseFloat(field.value);
-                    continue;
-            }
+        switch (fieldType) {
+            case "file":
+                // special handling
+                continue;
+            case "checkbox":
+                newSettings[fieldName] = field.checked;
+                continue;
+            case "number":
+                newSettings[fieldName] = parseFloat(field.value);
+                continue;
         }
 
         newSettings[fieldName] = field.value;
@@ -542,7 +561,6 @@ function updateFormFromLocalStorage() {
         "h-padding": 30,
         "v-padding": 50,
         "use-bg-img": false,
-        "bg-img-file": "",
         "bg-img-opacity": 0.9,
         "bg-img-hpos": "center",
         "bg-img-vpos": "bottom",
@@ -572,12 +590,20 @@ function updateFormFromLocalStorage() {
             storedValue = Object.hasOwn(settings, fieldName) ? settings[fieldName] : null;
         
         switch (fieldType) {
+            case "file":
+                // special handling
+                continue;
             case "checkbox":
                 field.checked = storedValue;
                 break;
             default: 
                 field.value = storedValue;
         }
+    }
+
+    // update bg image
+    if (Object.hasOwn(settings, "bg-img-data")) {
+        bgImgPreview.src = settings["bg-img-data"];
     }
 
     updateRender();
