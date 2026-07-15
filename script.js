@@ -1,22 +1,44 @@
 const c = document.getElementById("render");
 const ctx = c.getContext("2d");
 
-const settingsForm = document.forms[0];
+const settingsForm = document.forms[0],
+    settingsFields = (() => {
+        let form = settingsForm.elements;
+        let fields = {};
+
+        for (const fieldName in form) {
+            if (!isNaN(fieldName)) continue;
+            if (fieldName === "length") continue;
+            if (fieldName === "item") continue;
+            if (fieldName === "namedItem") continue;
+            // skip indexes and built-in properties/functions
+
+            const field = form[fieldName];
+            if (getFormFieldType(field) === "button") continue;
+            // skip buttons
+
+            fields[fieldName] = field;
+        }
+
+        return fields;
+    })();
+
+
 const downloadBtn = document.getElementById("download");
 const uploadBtn = document.getElementById("upload");
 
-const bodyIndentInput = settingsForm.elements["body-indent"],
-    filePicker = settingsForm.elements["bg-img-file"],
-    bgImgOpacityInput = settingsForm.elements["bg-img-opacity"],
-    bgImgHposSelect = settingsForm.elements["bg-img-hpos"],
-    bgImgVposSelect = settingsForm.elements["bg-img-vpos"],
-    bgImgStretch = settingsForm.elements["bg-img-stretch"],
-    bgImgRatioToggle = settingsForm.elements["bg-img-ratio"];
+const bodyIndentInput = settingsFields["body-indent"],
+    filePicker = settingsFields["bg-img-file"],
+    bgImgOpacityInput = settingsFields["bg-img-opacity"],
+    bgImgHposSelect = settingsFields["bg-img-hpos"],
+    bgImgVposSelect = settingsFields["bg-img-vpos"],
+    bgImgStretch = settingsFields["bg-img-stretch"],
+    bgImgRatioToggle = settingsFields["bg-img-ratio"];
 
 let currentSettings = {};
 
 function updateRender() {
-    updateSettingsFromForm();
+    currentSettings = getSettingsFromForm();
     console.log("Updating Canvas");
     // Clear canvas
     ctx.clearRect(0, 0, c.width, c.height);
@@ -442,7 +464,7 @@ function downloadBmp() {
     link.click();
 }
 
-function uploadBmp() {
+function uploadBmp() { // TODO
     // Check device status http://crosspoint.local/api/status
     // if not connected, prompt user to connect "Device not connected"
 
@@ -453,8 +475,7 @@ function uploadBmp() {
     // POST /upload
 }
 
-function showMessage(message, messageType) {
-    // TODO: turn into a nice toast instead
+function showMessage(message, messageType) { // TODO: turn into a nice toast instead
     window.alert(messageType + ": " + message);
 }
 
@@ -463,20 +484,30 @@ function invalidValueError(property, value) {
     showMessage(message, "error");
 }
 
-function updateSettingsFromForm() {
-    let settings = {};
+function getFormFieldType(field) {
+    if (field instanceof RadioNodeList) return "radiogroup";
 
-    for (const fieldName in settingsForm.elements) {
-        if (!isNaN(fieldName)) continue;
-        if (fieldName === "length") continue;
-        if (fieldName === "item") continue;
-        if (fieldName === "namedItem") continue;
-        // skip indexes and built-in properties/functions
+    if (field instanceof Element) {
+        let tagName = field.tagName.toLowerCase();
+        switch (tagName) {
+            case "button":
+            case "textarea":
+            case "select":
+                return tagName;
+        }
 
-        const field = settingsForm.elements[fieldName];
+        let typeAttr = field.getAttribute("type")?.toLowerCase();
+        if (typeAttr) return typeAttr;
+    }
 
-        if (field instanceof Element && field.tagName.toLowerCase() == "button") continue;
-        // skip buttons
+    return "unknown";
+}
+
+function getSettingsFromForm() {
+    let newSettings = {};
+
+    for (const fieldName in settingsFields) {
+        let field = settingsFields[fieldName];
 
         if (fieldName === "bg-img-file") {
             // it gets the special treatment
@@ -485,48 +516,76 @@ function updateSettingsFromForm() {
         if (field instanceof Element) {
             switch (field.getAttribute("type")?.toLowerCase()) {
                 case "checkbox":
-                    settings[fieldName] = field.checked;
+                    newSettings[fieldName] = field.checked;
                     continue;
                 case "number":
-                    settings[fieldName] = parseFloat(field.value);
+                    newSettings[fieldName] = parseFloat(field.value);
                     continue;
             }
         }
 
-        settings[fieldName] = field.value;
-
+        newSettings[fieldName] = field.value;
     }
 
-    currentSettings = settings;
+    return newSettings;
 }
 
 function saveSettingsToLocalStorage() {
-    console.log("TODO: actually save settings to localStorage");
+    let settingsString = JSON.stringify(currentSettings);
+    localStorage.setItem("crosspoint-sleep-text", settingsString);
 }
 
-function getSettingsFromLocalStorage() {
-    const defaultSettings = {
-        
+function updateFormFromLocalStorage() {
+    let settings = { // defaults
+        "device": "x3",
+        "invert-colors": false,
+        "h-padding": 30,
+        "v-padding": 50,
+        "use-bg-img": false,
+        "bg-img-file": "",
+        "bg-img-opacity": 0.9,
+        "bg-img-hpos": "center",
+        "bg-img-vpos": "bottom",
+        "bg-img-stretch": "none",
+        "bg-img-ratio": false,
+        "heading-size": 48,
+        "heading-align": "center",
+        "heading-text": "🎯 Today's Tasks",
+        "gap-size": 40,
+        "body-size": 32,
+        "body-ln": 1.6,
+        "body-align": "left",
+        "body-indent": -35,
+        "body-text": "☐ Some task\n☐ Some other task\n☐ Oh my god you have so many tasks\n☒ Make a dumb web utility\n☐ Now with word wrap and hanging indentation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. etc etc\n                            "
     }
+
+    // fetch from localstorage
+    const storedSettingString = localStorage.getItem("crosspoint-sleep-text");
+    if (storedSettingString) {
+        Object.assign(settings, JSON.parse(storedSettingString));
+    }
+
+    // update form fields
+    for (const fieldName in settingsFields) {
+        let field = settingsFields[fieldName],
+            fieldType = getFormFieldType(field),
+            storedValue = Object.hasOwn(settings, fieldName) ? settings[fieldName] : null;
+        
+        switch (fieldType) {
+            case "checkbox":
+                field.checked = storedValue;
+                break;
+            default: 
+                field.value = storedValue;
+        }
+    }
+
+    updateRender();
 }
-
-function generatePlatitude() {
-    const platitudes = [
-        "Now or Never",
-        "Today's the Day",
-        "Carpe Diem",
-        "Let's Go Girls",
-        "Hello Sunshine",
-        "Do the Thing"
-    ];
-
-    return "✨ " + platitudes[Math.floor(Math.random() * platitudes.length)] + " ✨";
-}
-
-settingsForm.elements["heading-text"].value = generatePlatitude();
 
 window.onload = (() => {
-    updateRender();
+    updateFormFromLocalStorage();
     settingsForm.addEventListener("change", updateRender);
     downloadBtn.addEventListener("click", downloadBmp);
+    uploadBtn.addEventListener("click", uploadBmp);
 });
