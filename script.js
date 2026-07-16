@@ -290,7 +290,7 @@ function updateRender() {
             case "stretch-v": {
                 let stretchFactor = getStretchFactor("stretch", "height");
                 dh = imgH * stretchFactor;
-                if (preserveRatio) dw = imgH * stretchFactor;
+                if (preserveRatio) dw = imgW * stretchFactor;
                 break;
             }
             case "stretch-hv": {
@@ -317,7 +317,7 @@ function updateRender() {
             case "shrink-v": {
                 let stretchFactor = getStretchFactor("shrink", "height");
                 dh = imgH * stretchFactor;
-                if (preserveRatio) dw = imgH * stretchFactor;
+                if (preserveRatio) dw = imgW * stretchFactor;
                 break;
             }
             case "shrink-hv": {
@@ -518,6 +518,10 @@ async function uploadBmp() {
     }
     catch (error) {
         console.error(error);
+
+        // TODO: this catch block will pop if the device is not connected, even with the "no-cors" mode,
+        // so make an error message appear
+        // "Upload failed! Make sure device is in File Transfer mode"
     }
     finally {
         uploadBtn.disabled = false;
