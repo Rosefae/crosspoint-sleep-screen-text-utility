@@ -295,6 +295,31 @@ form {
     }
 }
 
+.toast {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #d68910;
+    transition: 0.3s ease;
+    transition-property: transform, opacity, visibility;
+    transform: none;
+    color: #fff;
+    padding: 0.5em;
+    font-weight: bold;
+    text-align: center;
+
+    &:empty {
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(100%);
+    }
+
+    &.error {
+        background-color: #e74c3c;
+    }
+}
+
 @media (min-width: 675px) {
     main {
         flex-direction: row;

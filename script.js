@@ -27,6 +27,7 @@ const downloadBtn = document.getElementById("download");
 const uploadBtn = document.getElementById("upload");
 
 const bgFieldset = document.getElementById("bg-fieldset");
+const messageContainer = document.getElementById("toast");
 
 const bodyIndentInput = settingsFields["body-indent"],
     filePicker = settingsFields["bg-img-file"],
@@ -517,11 +518,9 @@ async function uploadBmp() {
         // will result in opaque response, so no way to know if it worked
     }
     catch (error) {
-        console.error(error);
-
-        // TODO: this catch block will pop if the device is not connected, even with the "no-cors" mode,
-        // so make an error message appear
-        // "Upload failed! Make sure device is in File Transfer mode"
+        let message = "Upload failed! Make sure device is in File Transfer mode.";
+        console.error(message, error);
+        showMessage(message, true, 10000);
     }
     finally {
         uploadBtn.disabled = false;
@@ -599,13 +598,22 @@ async function uploadBmp() {
 //     }
 // }
 
-function showMessage(message, messageType) { // TODO: turn into a nice toast instead
-    window.alert(messageType + ": " + message);
+function showMessage(message, isError = false, duration = 5000) { // TODO: turn into a nice toast instead
+    messageContainer.append(message);
+    if (isError) {
+        messageContainer.classList.add("error");
+    }
+
+    window.setTimeout(() => {
+        messageContainer.classList.remove("error");
+        messageContainer.replaceChildren();
+    }, duration);
+    
 }
 
 function invalidValueError(property, value) {
     let message = `Invalid ${property} value: ${value}`;
-    showMessage(message, "error");
+    showMessage(message, true);
 }
 
 function getFormFieldType(field) {
