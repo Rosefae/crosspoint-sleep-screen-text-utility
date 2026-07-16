@@ -9,4 +9,5 @@ This is meant to be a standalone web utility that generates the `sleep.bmp` file
 ## Possible future features
 
 - Font drop down to select different fonts. Probably just a small list of different fonts instead of polling the whole of Google Fonts.
-- Upload directly to device (if connected)
+- Improve bitmap saving to maybe be smaller / grayscale channels only
+- Upload to device with websocket instead of HTTP request to get around x-origin issues

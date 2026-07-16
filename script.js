@@ -491,11 +491,15 @@ function downloadBmp() {
     link.click();
 }
 
-async function uploadBmp() { // TODO
+async function uploadBmp() {    
+    // No way of knowing if it worked or not due to CORS
     const crosspointUploadUrl = "http://crosspoint.local/upload",
         destinationPath = "/",
         postUrl = `${crosspointUploadUrl}?path=${destinationPath}`;
-
+    
+    // set button to show it's doing things
+    uploadBtn.disabled = true;
+    uploadBtn.classList.add("loading");
 
     // Generate bitmap file
     const bmp = canvasToBmp();
@@ -503,24 +507,93 @@ async function uploadBmp() { // TODO
     postData.append("file", bmp, "sleep.bmp");
 
     // Upload
-    // NOTE: this will throw a x-origin error but does still work.
     try {
-        const response = await fetch(postUrl, {
+        await fetch(postUrl, {
             method: "POST",
+            mode: "no-cors",
             body: postData
         });
-
-        console.log("response status: ", response.status);
-
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
+        // "no-cors" mode will avoid x-origin error, but
+        // will result in opaque response, so no way to know if it worked
     }
     catch (error) {
-        let message = "Upload failed! Make sure device is in file transfer mode"
-        showMessage(message, "error");
+        console.error(error);
+    }
+    finally {
+        uploadBtn.disabled = false;
+        uploadBtn.classList.remove("loading");
     }
 }
+
+// async function uploadViaWebSocket() {
+//     // websocket keeps closing with code 1006 or 1009, even with chunking and waiting for response
+//     // giving up for now
+    
+//     const bmp = canvasToBmp(),
+//         wsStartString = `START:sleep.bmp:${bmp.size}:/`;
+    
+//     const socketReadyEvent = new CustomEvent("socketReady");
+
+//     try {
+//         const socket = new WebSocket("ws://crosspoint.local:81");
+//         socket.addEventListener("open", (event) => {
+//             console.log("Websocket open");
+//             socket.send(wsStartString);
+//         });
+//         socket.addEventListener("message", async (event) => {
+//             const message = event.data;
+
+//             if (message == "READY") {
+//                 sendBmpAsChunks(socket);
+//             }
+//             else if (message == "DONE") {
+//                 console.log("Upload done");
+//                 socket.close();
+//             }
+//             else if (message.startsWith("PROGRESS:")) {
+//                 console.log(message);
+//                 socket.dispatchEvent(socketReadyEvent);
+//             }
+//             else if (message.startsWith("ERROR:")) {
+//                 console.error(message);
+//             }
+//             else {
+//                 console.log("Message from WebSocket: ", message);
+//             }
+//         });
+//         socket.addEventListener("error", (event) => {
+//             console.error("Websocket Error: ", event);
+//         });
+//         socket.addEventListener("close", (event) => {
+//             console.log("Websocket Closed: ", event);
+//         });
+//     }
+//     catch (error) {
+//         console.error(error);
+//         console.log("Could not connect! Make sure device is connected");
+//     }
+
+//     async function sendBmpAsChunks(socket) {
+//         const CHUNK_SIZE = 1024 * 64; // 64kb
+//         let offset = 0;
+
+//         while (offset < bmp.size) {
+//             const chunk = bmp.slice(offset, offset + CHUNK_SIZE),
+//                 buffer = await chunk.arrayBuffer();
+            
+//             socket.send(buffer);
+            
+//             // wait for server to send a progress update
+//             await new Promise((r) => {
+//                 socket.addEventListener("socketReady", () => {
+//                     resolve();
+//                 }, {once: true});
+//             });
+
+//             offset += CHUNK_SIZE;
+//         }
+//     }
+// }
 
 function showMessage(message, messageType) { // TODO: turn into a nice toast instead
     window.alert(messageType + ": " + message);

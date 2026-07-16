@@ -21,11 +21,12 @@
 
             <p>Create a sleep screen for your X3 or X4 CrossPoint device with useful text!</p>
 
-            <!-- <p>
-                To upload directly to device, put device in File Transfer mode (join the same network or create a hotspot). Alternatively, download the file and place it manually in the root of the SD card (make sure the file is named <code>sleep.bmp</code>).
-            </p> -->
+            <p>
+                To upload directly to device, put device in File Transfer mode (join the same network or create a hotspot).
+            </p>
 
-            <p>Download file and place in root of SD card (make sure the file is named <code>sleep.bmp</code>)</p>
+            <p>Alternatively, download the file and place it manually in the root of the SD card (make sure the file is named
+            <code>sleep.bmp</code>).</p>
         </header>
 
         <div class="font-loader">
@@ -230,8 +231,15 @@
                 </fieldset>
                 
                 <div class="save-container">
-                    <button type="button" id="upload" class="save-btn">Upload to Device</button>
-                    <button type="button" id="download" class="save-btn">Download File</button>
+                    <button type="button" id="upload" class="save-btn save-btn--upload">
+                        <span class="btn-text">Upload to Device</span>
+                        <span class="btn-spinner">
+                            <span class="sr-only">Working...</span>
+                        </span>
+                    </button>
+                    <button type="button" id="download" class="save-btn save-btn--secondary">
+                        <span class="btn-text">Download File</span>
+                    </button>
                 </div>
             </form>
         </main>

@@ -1,3 +1,14 @@
+.sr-only {
+    clip: rect(1px, 1px, 1px, 1px);
+    clip-path: inset(50%);
+    height: 1px;
+    width: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+}
+
 footer {
     text-align: center;
     font-size: 0.7rem;
@@ -226,7 +237,65 @@ form {
     }
 }
 
-@media (min-width: 150mm) {
+.save-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+
+    > * {
+        min-width: calc(50% - 0.4rem);
+        flex-grow: 1;
+    }
+}
+
+.save-btn--upload {
+    position: relative;
+
+    .btn-spinner {
+        --spinner-size: 1.5rem;
+        position: absolute;
+        display: none;
+        box-sizing: border-box;
+        height: var(--spinner-size);
+        width: var(--spinner-size);
+        border-radius: var(--spinner-size);
+        border: 0.2rem currentColor solid;
+        border-bottom-color: transparent;
+        top: calc(50% - var(--spinner-size) / 2);
+        left: calc(50% - var(--spinner-size) / 2);
+        animation: spinner 2s linear infinite;
+    }
+
+    &.loading {
+        .btn-text {
+            visibility: hidden;
+        }
+
+        .btn-spinner {
+            display: block;
+        }
+    }
+}
+
+@keyframes spinner {
+    from {
+        transform: rotate(0);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.save-btn--secondary {
+    background-color: var(--accent-color);
+
+    &:hover {
+        background-color: var(--accent-hover-color);
+    }
+}
+
+@media (min-width: 675px) {
     main {
         flex-direction: row;
         align-items: center;
