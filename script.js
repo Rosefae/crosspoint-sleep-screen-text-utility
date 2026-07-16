@@ -494,9 +494,10 @@ function downloadBmp() {
 
 async function uploadBmp() {    
     // No way of knowing if it worked or not due to CORS
-    const crosspointUploadUrl = "http://crosspoint.local/upload",
-        destinationPath = "/",
-        postUrl = `${crosspointUploadUrl}?path=${destinationPath}`;
+    const crosspointServerUrl = "http://crosspoint.local",
+        listFilesUrl = `${crosspointServerUrl}/api/files?path=/`,
+        deleteUrl = `${crosspointServerUrl}/delete?path=/sleep.bmp`,
+        postUrl = `${crosspointServerUrl}/upload?path=/`;
     
     // set button to show it's doing things
     uploadBtn.disabled = true;
@@ -509,37 +510,69 @@ async function uploadBmp() {
 
     // Upload
     try {
-        await fetch(postUrl, {
+        // delete existing sleep.bmp if it exists
+        const responseDir = await fetch(listFilesUrl, {
+            method: "GET"
+        });
+
+        if (!responseDir.ok) {
+            const errMsg = `Error getting list of files: ${responseDir.status} ${responseDir.statusText}`;
+            throw new Error(errMsg);
+        }
+
+        const filesList = await responseDir.json(),
+            checkFileName = (file) => file["name"] === "sleep.bmp";
+
+        if (filesList.some(checkFileName)) {
+            console.log("Found existing sleep.bmp. Deleting...");
+
+            const responseDel = await fetch(deleteUrl, {
+                method: "POST"
+            });
+
+            if (!responseDel.ok) {
+                const errMsg = `Error deleting existing sleep.bmp: ${responseDel.status} ${responseDel.statusText}`;
+                throw new Error(errMsg);
+            }
+        }
+
+        console.log("Uploading new sleep.bmp...")
+        // no more need for no-cors as of Crosspoint's july 16 nightly build :D
+        let response = await fetch(postUrl, {
             method: "POST",
-            mode: "no-cors",
             body: postData
         });
-        // "no-cors" mode will avoid x-origin error, but
-        // will result in opaque response, so no way to know if it worked
+
+        if (!response.ok) {
+            const errMsg = `Error uploading new file: ${response.status} ${response.statusText}`;
+            throw new Error(errMsg);
+        }
+
+        showMessage("Sleep screen successfully updated!");
+        console.log("Done!");
     }
     catch (error) {
         let message = "Upload failed! Make sure device is in File Transfer mode.";
-        console.error(message, error);
         showMessage(message, true, 10000);
+        console.error(error);
     }
     finally {
         uploadBtn.disabled = false;
         uploadBtn.classList.remove("loading");
-        showMessage("Done! Please verify on device.", false, 10000);
     }
 }
 
-function showMessage(message, isError = false, duration = 5000) { // TODO: turn into a nice toast instead
-    messageContainer.append(message);
+function showMessage(message, isError = false, duration = 5000) {
+    let messageEl = document.createElement("span");
+    messageEl.append(message);
     if (isError) {
-        messageContainer.classList.add("error");
+        messageEl.classList.add("error");
     }
+    messageContainer.append(messageEl);
 
-    window.setTimeout(() => {
-        messageContainer.classList.remove("error");
-        messageContainer.replaceChildren();
+    setTimeout(() => {
+        messageEl.remove();
     }, duration);
-    
 }
 
 function invalidValueError(property, value) {
