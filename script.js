@@ -525,78 +525,9 @@ async function uploadBmp() {
     finally {
         uploadBtn.disabled = false;
         uploadBtn.classList.remove("loading");
+        showMessage("Done! Please verify on device.", false, 10000);
     }
 }
-
-// async function uploadViaWebSocket() {
-//     // websocket keeps closing with code 1006 or 1009, even with chunking and waiting for response
-//     // giving up for now
-    
-//     const bmp = canvasToBmp(),
-//         wsStartString = `START:sleep.bmp:${bmp.size}:/`;
-    
-//     const socketReadyEvent = new CustomEvent("socketReady");
-
-//     try {
-//         const socket = new WebSocket("ws://crosspoint.local:81");
-//         socket.addEventListener("open", (event) => {
-//             console.log("Websocket open");
-//             socket.send(wsStartString);
-//         });
-//         socket.addEventListener("message", async (event) => {
-//             const message = event.data;
-
-//             if (message == "READY") {
-//                 sendBmpAsChunks(socket);
-//             }
-//             else if (message == "DONE") {
-//                 console.log("Upload done");
-//                 socket.close();
-//             }
-//             else if (message.startsWith("PROGRESS:")) {
-//                 console.log(message);
-//                 socket.dispatchEvent(socketReadyEvent);
-//             }
-//             else if (message.startsWith("ERROR:")) {
-//                 console.error(message);
-//             }
-//             else {
-//                 console.log("Message from WebSocket: ", message);
-//             }
-//         });
-//         socket.addEventListener("error", (event) => {
-//             console.error("Websocket Error: ", event);
-//         });
-//         socket.addEventListener("close", (event) => {
-//             console.log("Websocket Closed: ", event);
-//         });
-//     }
-//     catch (error) {
-//         console.error(error);
-//         console.log("Could not connect! Make sure device is connected");
-//     }
-
-//     async function sendBmpAsChunks(socket) {
-//         const CHUNK_SIZE = 1024 * 64; // 64kb
-//         let offset = 0;
-
-//         while (offset < bmp.size) {
-//             const chunk = bmp.slice(offset, offset + CHUNK_SIZE),
-//                 buffer = await chunk.arrayBuffer();
-            
-//             socket.send(buffer);
-            
-//             // wait for server to send a progress update
-//             await new Promise((r) => {
-//                 socket.addEventListener("socketReady", () => {
-//                     resolve();
-//                 }, {once: true});
-//             });
-
-//             offset += CHUNK_SIZE;
-//         }
-//     }
-// }
 
 function showMessage(message, isError = false, duration = 5000) { // TODO: turn into a nice toast instead
     messageContainer.append(message);
