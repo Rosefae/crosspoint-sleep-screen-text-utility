@@ -492,111 +492,128 @@ function downloadBmp() {
     link.click();
 }
 
-async function uploadBmp() {    
-    // No way of knowing if it worked or not due to CORS
-    const crosspointUploadUrl = "http://crosspoint.local/upload",
-        destinationPath = "/",
-        postUrl = `${crosspointUploadUrl}?path=${destinationPath}`;
+// async function uploadBmp() {    
+//     // No way of knowing if it worked or not due to CORS
+//     const crosspointUploadUrl = "http://crosspoint.local/upload",
+//         destinationPath = "/",
+//         postUrl = `${crosspointUploadUrl}?path=${destinationPath}`;
     
-    // set button to show it's doing things
-    uploadBtn.disabled = true;
-    uploadBtn.classList.add("loading");
+//     // set button to show it's doing things
+//     uploadBtn.disabled = true;
+//     uploadBtn.classList.add("loading");
 
-    // Generate bitmap file
-    const bmp = canvasToBmp();
-    const postData = new FormData();
-    postData.append("file", bmp, "sleep.bmp");
+//     // Generate bitmap file
+//     const bmp = canvasToBmp();
+//     const postData = new FormData();
+//     postData.append("file", bmp, "sleep.bmp");
 
-    // Upload
-    try {
-        await fetch(postUrl, {
-            method: "POST",
-            mode: "no-cors",
-            body: postData
-        });
-        // "no-cors" mode will avoid x-origin error, but
-        // will result in opaque response, so no way to know if it worked
-    }
-    catch (error) {
-        let message = "Upload failed! Make sure device is in File Transfer mode.";
-        console.error(message, error);
-        showMessage(message, true, 10000);
-    }
-    finally {
-        uploadBtn.disabled = false;
-        uploadBtn.classList.remove("loading");
-    }
-}
-
-// async function uploadViaWebSocket() {
-//     // websocket keeps closing with code 1006 or 1009, even with chunking and waiting for response
-//     // giving up for now
-    
-//     const bmp = canvasToBmp(),
-//         wsStartString = `START:sleep.bmp:${bmp.size}:/`;
-    
-//     const socketReadyEvent = new CustomEvent("socketReady");
-
+//     // Upload
 //     try {
-//         const socket = new WebSocket("ws://crosspoint.local:81");
-//         socket.addEventListener("open", (event) => {
-//             console.log("Websocket open");
-//             socket.send(wsStartString);
+//         await fetch(postUrl, {
+//             method: "POST",
+//             mode: "no-cors",
+//             body: postData
 //         });
-//         socket.addEventListener("message", async (event) => {
-//             const message = event.data;
-
-//             if (message == "READY") {
-//                 sendBmpAsChunks(socket);
-//             }
-//             else if (message == "DONE") {
-//                 console.log("Upload done");
-//                 socket.close();
-//             }
-//             else if (message.startsWith("PROGRESS:")) {
-//                 console.log(message);
-//                 socket.dispatchEvent(socketReadyEvent);
-//             }
-//             else if (message.startsWith("ERROR:")) {
-//                 console.error(message);
-//             }
-//             else {
-//                 console.log("Message from WebSocket: ", message);
-//             }
-//         });
-//         socket.addEventListener("error", (event) => {
-//             console.error("Websocket Error: ", event);
-//         });
-//         socket.addEventListener("close", (event) => {
-//             console.log("Websocket Closed: ", event);
-//         });
+//         // "no-cors" mode will avoid x-origin error, but
+//         // will result in opaque response, so no way to know if it worked
 //     }
 //     catch (error) {
-//         console.error(error);
-//         console.log("Could not connect! Make sure device is connected");
+//         let message = "Upload failed! Make sure device is in File Transfer mode.";
+//         console.error(message, error);
+//         showMessage(message, true, 10000);
 //     }
-
-//     async function sendBmpAsChunks(socket) {
-//         const CHUNK_SIZE = 1024 * 64; // 64kb
-//         let offset = 0;
-
-//         while (offset < bmp.size) {
-//             const chunk = bmp.slice(offset, offset + CHUNK_SIZE),
-//                 buffer = await chunk.arrayBuffer();
-            
-//             socket.send(buffer);
-            
-//             // wait for server to send a progress update
-//             await new Promise((r) => {
-//                 socket.addEventListener("socketReady", () => {
-//                     resolve();
-//                 }, {once: true});
-//             });
-
-//             offset += CHUNK_SIZE;
-//         }
+//     finally {
+//         uploadBtn.disabled = false;
+//         uploadBtn.classList.remove("loading");
 //     }
 // }
+
+async function uploadViaWebSocket() {
+    // websocket keeps closing with code 1006 or 1009, even with chunking and waiting for response
+    // seems to close with 1006 after about 1.5s of inactivity
+
+    //set button to show it's doing things
+    uploadBtn.disabled = true;
+    uploadBtn.classList.add("loading");
+    
+    const bmp = canvasToBmp(),
+        buffer = await bmp.arrayBuffer(),
+        wsStartString = `START:sleep.bmp:${bmp.size}:/`,
+        CHUNK_SIZE = 1024 * 64; // 64kb
+    
+    const socketReadyEvent = new CustomEvent("socketReady");
+
+    let nextChunkStart = 0;
+
+    try {
+        let socket;
+        socket = new WebSocket("ws://crosspoint.local:81");
+
+        socket.addEventListener("open", (event) => {
+            console.log("Websocket open");
+            socket.send(wsStartString);
+        });
+        socket.addEventListener("message", (event) => {
+            const message = event.data;
+
+            if (message == "READY") {
+                socket.dispatchEvent(socketReadyEvent);
+            }
+            else if (message == "DONE") {
+                console.log("Upload done");
+                socket.close();
+            }
+            else if (message.startsWith("PROGRESS:")) {
+                console.log(message);
+                //socket.dispatchEvent(socketReadyEvent);
+            }
+            else if (message.startsWith("ERROR:")) {
+                console.error(message);
+            }
+            else {
+                console.log("Message from WebSocket: ", message);
+            }
+        });
+        socket.addEventListener("socketReady", (event) => {
+            console.log("Ready for next chunk", event.timeStamp);
+            // sendNextBmpChunk(event.target);
+            sendBmpAsChunks(event.target);
+        });
+        socket.addEventListener("error", (event) => {
+            console.error("Websocket Error: ", event);
+        });
+        socket.addEventListener("close", (event) => {
+            console.log("Websocket Closed: ", event);
+            uploadBtn.disabled = false;
+            uploadBtn.classList.remove("loading");
+        });
+    }
+    catch (error) {
+        console.error(error);
+        console.log("Could not connect! Make sure device is connected");
+    }
+
+    function sendNextBmpChunk(socket) {
+        const chunk = buffer.slice(nextChunkStart, nextChunkStart + CHUNK_SIZE);
+        console.log("Sending next chunk: ", chunk.byteLength);
+        socket.send(chunk);
+        nextChunkStart += CHUNK_SIZE;
+        
+        if (nextChunkStart > buffer.size) {
+            console.log("sent all chunks, removing listener");
+            socket.removeEventListener("socketReady");
+        }
+    }
+
+    async function sendBmpAsChunks(socket) {
+        const bufferedAmount = socket.bufferedAmount;
+        console.log("Buffered amount: ", bufferedAmount);
+        while (bufferedAmount > 2 * CHUNK_SIZE) {
+            await new Promise(r => setTimeout(r, 50));
+        }
+        sendNextBmpChunk(socket);
+    }
+}
 
 function showMessage(message, isError = false, duration = 5000) { // TODO: turn into a nice toast instead
     messageContainer.append(message);
@@ -724,5 +741,5 @@ window.onload = (() => {
     updateFormFromLocalStorage();
     settingsForm.addEventListener("change", updateRender);
     downloadBtn.addEventListener("click", downloadBmp);
-    uploadBtn.addEventListener("click", uploadBmp);
+    uploadBtn.addEventListener("click", uploadViaWebSocket);
 });
