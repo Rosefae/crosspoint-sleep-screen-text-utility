@@ -23,7 +23,6 @@ const settingsForm = document.forms[0],
         return fields;
     })();
 
-
 const downloadBtn = document.getElementById("download");
 const uploadBtn = document.getElementById("upload");
 
@@ -492,15 +491,35 @@ function downloadBmp() {
     link.click();
 }
 
-function uploadBmp() { // TODO
-    // Check device status http://crosspoint.local/api/status
-    // if not connected, prompt user to connect "Device not connected"
+async function uploadBmp() { // TODO
+    const crosspointUploadUrl = "http://crosspoint.local/upload",
+        destinationPath = "/",
+        postUrl = `${crosspointUploadUrl}?path=${destinationPath}`;
+
 
     // Generate bitmap file
     const bmp = canvasToBmp();
-    const url = URL.createObjectURL(bmp);
+    const postData = new FormData();
+    postData.append("file", bmp, "sleep.bmp");
 
-    // POST /upload
+    // Upload
+    // NOTE: this will throw a x-origin error but does still work.
+    try {
+        const response = await fetch(postUrl, {
+            method: "POST",
+            body: postData
+        });
+
+        console.log("response status: ", response.status);
+
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+    }
+    catch (error) {
+        let message = "Upload failed! Make sure device is in file transfer mode"
+        showMessage(message, "error");
+    }
 }
 
 function showMessage(message, messageType) { // TODO: turn into a nice toast instead
