@@ -1,6 +1,36 @@
 const c = document.getElementById("render");
 const ctx = c.getContext("2d");
 
+const crosspointServerUrl = "http://crosspoint.local",
+    listFilesUrl = `${crosspointServerUrl}/api/files?path=/`,
+    deleteUrl = `${crosspointServerUrl}/delete?path=/`,
+    downloadUrl = `${crosspointServerUrl}/download?path=/`,
+    uploadUrl = `${crosspointServerUrl}/upload?path=/`,
+    imgFileName = "sleep.bmp",
+    configFileName = "sleepnote-config.json";
+
+const defaultSettings = { // defaults
+    "device": "x3",
+    "invert-colors": false,
+    "h-padding": 30,
+    "v-padding": 50,
+    "use-bg-img": false,
+    "bg-img-opacity": 0.9,
+    "bg-hpos": 0.5,
+    "bg-vpos": 0.5,
+    "bg-scale": 1,
+    "heading-size": 48,
+    "heading-align": "center",
+    "heading-text": "🎯 Today's Tasks",
+    "gap-size": 40,
+    "body-size": 32,
+    "body-ln": 1.6,
+    "body-align": "left",
+    "body-indent": -35,
+    "body-text": "☐ Some task\n☐ Some other task\n☒ Completed task\n☐ Here is a long task showing hanging indentation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. etc etc",
+    "upload-config": true
+}
+
 const settingsForm = document.forms[0],
     settingsFields = (() => {
         let form = settingsForm.elements;
@@ -13,9 +43,12 @@ const settingsForm = document.forms[0],
             if (fieldName === "namedItem") continue;
             // skip indexes and built-in properties/functions
 
-            const field = form[fieldName];
-            if (getFormFieldType(field) === "button") continue;
+            const field = form[fieldName],
+                fieldType = getFormFieldType(field);
+            if (fieldType === "button") continue;
             // skip buttons
+            if (fieldType === "fieldset") continue;
+            // skip fieldsets
 
             fields[fieldName] = field;
         }
@@ -23,6 +56,7 @@ const settingsForm = document.forms[0],
         return fields;
     })();
 
+const loadConfigBtn = document.getElementById("loadConfig");
 const downloadBtn = document.getElementById("download");
 const uploadBtn = document.getElementById("upload");
 
@@ -374,64 +408,71 @@ function downloadBmp() {
     link.click();
 }
 
-async function uploadBmp() {    
-    // No way of knowing if it worked or not due to CORS
-    const crosspointServerUrl = "http://crosspoint.local",
-        listFilesUrl = `${crosspointServerUrl}/api/files?path=/`,
-        deleteUrl = `${crosspointServerUrl}/delete?path=/sleep.bmp`,
-        postUrl = `${crosspointServerUrl}/upload?path=/`;
-    
+async function loadConfigFromDevice() {
+    try {
+        const response = await fetch(downloadUrl + configFileName, { method: "GET" });
+
+        if (!response.ok) {
+            const errMsg = `Error getting config file: ${response.status} ${response.statusText}`;
+            throw new Error(errMsg);
+        }
+
+        let file = await response.blob(),
+            text = await file.text(),
+            data = JSON.parse(text);
+
+        updateFormFromObject(data);
+    }
+    catch (error) {
+        let message = "Could not load settings! Make sure device is in File Transfer mode and settings file exists.";
+        showMessage(message, true, 10000);
+        console.error(error);
+    }
+}
+
+async function uploadBmp() {
     // set button to show it's doing things
     uploadBtn.disabled = true;
     uploadBtn.classList.add("loading");
 
-    // Generate bitmap file
-    const bmp = canvasToBmp();
-    const postData = new FormData();
-    postData.append("file", bmp, "sleep.bmp");
+    const includeSettings = currentSettings["upload-config"];
 
+    // Generate files
+    const bmpFile = canvasToBmp();
+    
+    let settingsToSave = {},
+        configFile;
+    
+    if (includeSettings) {
+        Object.assign(settingsToSave, currentSettings);
+        // strip image from settings if not used
+        if (!settingsToSave["use-bg-img"]) {
+            delete settingsToSave["bg-img-data"];
+        }
+        configFile = new Blob([JSON.stringify(settingsToSave)], { type: "application/json" });
+    }
+    
     // Upload
     try {
-        // delete existing sleep.bmp if it exists
-        const responseDir = await fetch(listFilesUrl, {
-            method: "GET"
-        });
+        // delete existing sleep.bmp and config file if it exists
+        const responseDir = await fetch(listFilesUrl, { method: "GET" });
 
         if (!responseDir.ok) {
             const errMsg = `Error getting list of files: ${responseDir.status} ${responseDir.statusText}`;
             throw new Error(errMsg);
         }
 
-        const filesList = await responseDir.json(),
-            checkFileName = (file) => file["name"] === "sleep.bmp";
+        const filesList = await responseDir.json();
+        let promises = [uploadAndReplace(bmpFile, imgFileName, filesList)]
 
-        if (filesList.some(checkFileName)) {
-            console.log("Found existing sleep.bmp. Deleting...");
-
-            const responseDel = await fetch(deleteUrl, {
-                method: "POST"
-            });
-
-            if (!responseDel.ok) {
-                const errMsg = `Error deleting existing sleep.bmp: ${responseDel.status} ${responseDel.statusText}`;
-                throw new Error(errMsg);
-            }
+        if (includeSettings) {
+            promises.push(uploadAndReplace(configFile, configFileName, filesList));
         }
 
-        console.log("Uploading new sleep.bmp...")
-        // no more need for no-cors as of Crosspoint's july 16 nightly build :D
-        let response = await fetch(postUrl, {
-            method: "POST",
-            body: postData
-        });
-
-        if (!response.ok) {
-            const errMsg = `Error uploading new file: ${response.status} ${response.statusText}`;
-            throw new Error(errMsg);
-        }
+        await Promise.all(promises);
 
         showMessage("Sleep screen successfully updated!");
-        console.log("Done!");
+        console.log("All Done!");
     }
     catch (error) {
         let message = "Upload failed! Make sure device is in File Transfer mode.";
@@ -441,6 +482,39 @@ async function uploadBmp() {
     finally {
         uploadBtn.disabled = false;
         uploadBtn.classList.remove("loading");
+    }
+
+    async function uploadAndReplace(file, fileName, filesList) {
+        const checkForFile = (file) => file["name"] === fileName;
+
+        if (filesList.some(checkForFile)) {
+            console.log(`Found existing ${fileName}. Deleting...`);
+
+            const responseDel = await fetch(deleteUrl + fileName, {
+                method: "POST"
+            });
+
+            if (!responseDel.ok) {
+                const errMsg = `Error deleting existing ${fileName}: ${responseDel.status} ${responseDel.statusText}`;
+                throw new Error(errMsg);
+            }
+        }
+
+        console.log(`Uploading new ${fileName}...`);
+        const postData = new FormData();
+        postData.append("file", file, fileName);
+        // no more need for no-cors as of Crosspoint's july 16 nightly build :D
+        let response = await fetch(uploadUrl, {
+            method: "POST",
+            body: postData
+        });
+
+        if (!response.ok) {
+            const errMsg = `Error uploading new ${fileName}: ${response.status} ${response.statusText}`;
+            throw new Error(errMsg);
+        }
+
+        console.log(`New ${fileName} successfully uploaded!`);
     }
 }
 
@@ -471,6 +545,7 @@ function getFormFieldType(field) {
             case "button":
             case "textarea":
             case "select":
+            case "fieldset":
                 return tagName;
         }
 
@@ -511,40 +586,12 @@ function saveSettingsToLocalStorage() {
     localStorage.setItem("crosspoint-sleep-text", settingsString);
 }
 
-function updateFormFromLocalStorage() {
-    let settings = { // defaults
-        "device": "x3",
-        "invert-colors": false,
-        "h-padding": 30,
-        "v-padding": 50,
-        "use-bg-img": false,
-        "bg-img-opacity": 0.9,
-        "bg-hpos": 0.5,
-        "bg-vpos": 0.5,
-        "bg-scale": 1,
-        "heading-size": 48,
-        "heading-align": "center",
-        "heading-text": "🎯 Today's Tasks",
-        "gap-size": 40,
-        "body-size": 32,
-        "body-ln": 1.6,
-        "body-align": "left",
-        "body-indent": -35,
-        "body-text": "☐ Some task\n☐ Some other task\n☐ Oh my god you have so many tasks\n☒ Make a dumb web utility\n☐ Now with word wrap and hanging indentation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. etc etc"
-    }
-
-    // fetch from localstorage
-    const storedSettingString = localStorage.getItem("crosspoint-sleep-text");
-    if (storedSettingString) {
-        Object.assign(settings, JSON.parse(storedSettingString));
-    }
-
-    // update form fields
+function updateFormFromObject(settings) {
     for (const fieldName in settingsFields) {
         let field = settingsFields[fieldName],
             fieldType = getFormFieldType(field),
             storedValue = Object.hasOwn(settings, fieldName) ? settings[fieldName] : null;
-        
+
         switch (fieldType) {
             case "file":
                 // special handling
@@ -552,7 +599,7 @@ function updateFormFromLocalStorage() {
             case "checkbox":
                 field.checked = storedValue;
                 break;
-            default: 
+            default:
                 field.value = storedValue;
         }
     }
@@ -565,8 +612,22 @@ function updateFormFromLocalStorage() {
     updateRender();
 }
 
+function updateFormFromLocalStorage() {
+    let settings = Object.assign({}, defaultSettings);
+
+    // fetch from localstorage
+    const storedSettingString = localStorage.getItem("crosspoint-sleep-text");
+    if (storedSettingString) {
+        Object.assign(settings, JSON.parse(storedSettingString));
+    }
+
+    // update form fields
+    updateFormFromObject(settings);
+}
+
 window.onload = (() => {
     updateFormFromLocalStorage();
+    loadConfigBtn.addEventListener("click", loadConfigFromDevice);
     settingsForm.addEventListener("change", updateRender);
     downloadBtn.addEventListener("click", downloadBmp);
     uploadBtn.addEventListener("click", uploadBmp);

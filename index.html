@@ -42,6 +42,14 @@
                 <canvas id="render"></canvas>
             </div>
             <form id="options">
+                <div class="get-settings-container">
+                    <button type="button" id="loadConfig" class="save-btn save-btn--upload">
+                        <span class="btn-text">Load Existing Settings from Device</span>
+                        <span class="btn-spinner">
+                            <span class="sr-only">Working...</span>
+                        </span>
+                    </button>
+                </div>
                 <fieldset class="opts-device card">
                     <legend>Device</legend>
                     <div class="setting-row setting-radio-group">
@@ -107,47 +115,6 @@
                             <input type="number" name="bg-img-opacity" step="0.1" min="0" max="1">
                         </span>
                     </label>
-                    <!-- <label class="setting-row">
-                        <span class="setting-name">Horizontal Position</span>
-                        <span class="setting-control">
-                            <select name="bg-img-hpos">
-                                <option value="left">Left</option>
-                                <option value="center">Center</option>
-                                <option value="right">Right</option>
-                            </select>
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Vertical Position</span>
-                        <span class="setting-control">
-                            <select name="bg-img-vpos">
-                                <option value="top">Top</option>
-                                <option value="center">Center</option>
-                                <option value="bottom">Bottom</option>
-                            </select>
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Stretch to Fill / Shrink to Fit</span>
-                        <span class="setting-control">
-                            <select name="bg-img-stretch">
-                                <option value="none">None</option>
-                                <option value="stretch-h">Stretch Horizontal</option>
-                                <option value="stretch-v">Stretch Vertical</option>
-                                <option value="stretch-hv">Stretch Both</option>
-                                <option value="shrink-h">Shrink Horizontal</option>
-                                <option value="shrink-v">Shrink Vertical</option>
-                                <option value="shrink-hv">Shrink Both</option>
-                            </select>
-                        </span>
-                    </label>
-                    <label class="setting-row">
-                        <span class="setting-name">Keep Aspect Ratio</span>
-                        <span class="toggle-switch">
-                            <input type="checkbox" name="bg-img-ratio">
-                            <span class="toggle-slider"></span>
-                        </span>
-                    </label> -->
 
                     <label class="setting-row">
                         <span class="setting-name">Horizontal Position</span>
@@ -249,6 +216,21 @@
                         <span class="setting-name">Body Text</span>
                         <span class="setting-control setting-control-textarea">
                             <textarea name="body-text"></textarea>
+                        </span>
+                    </label>
+                </fieldset>
+
+                <fieldset class="opts-body card">
+                    <legend>Upload Settings</legend>
+
+                    <label class="setting-row">
+                        <span class="setting-name">
+                            Include Settings File in Upload
+                            <span class="setting-desc">Settings file could be very large if original background image is large</span>
+                        </span>
+                        <span class="toggle-switch">
+                            <input type="checkbox" name="upload-config">
+                            <span class="toggle-slider"></span>
                         </span>
                     </label>
                 </fieldset>
