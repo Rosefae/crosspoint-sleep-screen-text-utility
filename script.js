@@ -1,6 +1,3 @@
-const c = document.getElementById("render");
-const ctx = c.getContext("2d");
-
 const crosspointServerUrl = "http://crosspoint.local",
     listFilesUrl = `${crosspointServerUrl}/api/files?path=/`,
     deleteUrl = `${crosspointServerUrl}/delete?path=/`,
@@ -31,47 +28,59 @@ const defaultSettings = { // defaults
     "upload-config": true
 }
 
-const settingsForm = document.forms[0],
-    settingsFields = (() => {
+let currentSettings = {};
+
+function init() {
+    globalThis.c = document.getElementById("render");
+    globalThis.ctx = c.getContext("2d");
+
+    globalThis.settingsForm = document.forms[0];
+    globalThis.settingsFields = (() => {
         let form = settingsForm.elements;
         let fields = {};
 
-        for (const fieldName in form) {
-            if (!isNaN(fieldName)) continue;
-            if (fieldName === "length") continue;
-            if (fieldName === "item") continue;
-            if (fieldName === "namedItem") continue;
-            // skip indexes and built-in properties/functions
+        for (const fieldInd in form) {
+            // for x-browser compatibility, must iterate through indexes
+            if (isNaN(fieldInd)) continue;
+            // skip built-in properties/functions and not-indexes
 
-            const field = form[fieldName],
-                fieldType = getFormFieldType(field);
+            const field = form[fieldInd];
+            if (!field["name"]) continue;
+
+            const fieldType = getFormFieldType(field);
             if (fieldType === "button") continue;
             // skip buttons
             if (fieldType === "fieldset") continue;
             // skip fieldsets
 
+            const fieldName = field["name"];
             fields[fieldName] = field;
         }
 
         return fields;
     })();
 
-const loadConfigBtn = document.getElementById("loadConfig");
-const downloadBtn = document.getElementById("download");
-const uploadBtn = document.getElementById("upload");
+    globalThis.loadConfigBtn = document.getElementById("loadConfig");
+    globalThis.downloadBtn = document.getElementById("download");
+    globalThis.uploadBtn = document.getElementById("upload");
 
-const bgFieldset = document.getElementById("bg-fieldset");
-const messageContainer = document.getElementById("toast");
+    globalThis.bgFieldset = document.getElementById("bg-fieldset");
+    globalThis.messageContainer = document.getElementById("toast");
 
-const bodyIndentInput = settingsFields["body-indent"],
-    filePicker = settingsFields["bg-img-file"],
-    bgImgPreview = document.getElementById("bg-img-preview"),
-    bgImgOpacityInput = settingsFields["bg-img-opacity"],
-    bgImgHposSlider = settingsFields["bg-hpos"],
-    bgImgVposSlider = settingsFields["bg-vpos"],
-    bgImgScaleInput = settingsFields["bg-scale"];
+    globalThis.bodyIndentInput = settingsFields["body-indent"];
+    globalThis.filePicker = settingsFields["bg-img-file"];
+    globalThis.bgImgPreview = document.getElementById("bg-img-preview");
+    globalThis.bgImgOpacityInput = settingsFields["bg-img-opacity"];
+    globalThis.bgImgHposSlider = settingsFields["bg-hpos"];
+    globalThis.bgImgVposSlider = settingsFields["bg-vpos"];
+    globalThis.bgImgScaleInput = settingsFields["bg-scale"];
 
-let currentSettings = {};
+    updateFormFromLocalStorage();
+    loadConfigBtn.addEventListener("click", loadConfigFromDevice);
+    settingsForm.addEventListener("change", updateRender);
+    downloadBtn.addEventListener("click", downloadBmp);
+    uploadBtn.addEventListener("click", uploadBmp);
+}
 
 function updateRender() {
     currentSettings = getSettingsFromForm();
@@ -625,10 +634,4 @@ function updateFormFromLocalStorage() {
     updateFormFromObject(settings);
 }
 
-window.onload = (() => {
-    updateFormFromLocalStorage();
-    loadConfigBtn.addEventListener("click", loadConfigFromDevice);
-    settingsForm.addEventListener("change", updateRender);
-    downloadBtn.addEventListener("click", downloadBmp);
-    uploadBtn.addEventListener("click", uploadBmp);
-});
+window.onload = init;
