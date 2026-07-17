@@ -12,3 +12,4 @@ This is meant to be a standalone web utility that generates the `sleep.bmp` file
 - Improve bitmap saving to maybe be smaller / grayscale channels only
 - Apply dithering somehow to better work with the hardware display
 - Option to load settings from a JSON file on the SD card
+- PWA? Would need to serve the fonts locally instead of using Google Fonts API
