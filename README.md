@@ -13,3 +13,4 @@ This is meant to be a standalone web utility that generates the `sleep.bmp` file
 - Apply dithering somehow to better work with the hardware display
 - Option to load settings from a JSON file on the SD card
 - PWA? Would need to serve the fonts locally instead of using Google Fonts API
+- Sliders for positioning and scaling the background image for more versatility

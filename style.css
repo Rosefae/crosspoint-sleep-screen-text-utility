@@ -128,6 +128,35 @@ form {
     display: block;
 }
 
+.setting-control input[type="range"] {
+    --slider-size: 1.2rem;
+    appearance: none;
+    width: 100%;
+    height: calc(0.5 * var(--slider-size));
+    border-radius: var(--slider-size);
+    background: color-mix(in srgb, currentColor 40%, transparent 60%);
+    outline: none;
+    margin: 0;
+
+    &::-webkit-slider-thumb {
+        appearance: none;
+        background-color: currentColor;
+        width: var(--slider-size);
+        height: var(--slider-size);
+        border-radius: var(--slider-size);
+    }
+
+    &::-moz-range-thumb {
+        background-color: #fff;
+        width: var(--slider-size);
+        height: var(--slider-size);
+    }
+
+    &:focus-visible {
+        outline: auto;
+    }
+}
+
 .setting-radio-group {
     justify-content: flex-start;
 
@@ -308,6 +337,9 @@ form {
     padding: 0.5em;
     font-weight: bold;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
     &:empty {
         visibility: hidden;

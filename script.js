@@ -33,10 +33,9 @@ const bodyIndentInput = settingsFields["body-indent"],
     filePicker = settingsFields["bg-img-file"],
     bgImgPreview = document.getElementById("bg-img-preview"),
     bgImgOpacityInput = settingsFields["bg-img-opacity"],
-    bgImgHposSelect = settingsFields["bg-img-hpos"],
-    bgImgVposSelect = settingsFields["bg-img-vpos"],
-    bgImgStretch = settingsFields["bg-img-stretch"],
-    bgImgRatioToggle = settingsFields["bg-img-ratio"];
+    bgImgHposSlider = settingsFields["bg-hpos"],
+    bgImgVposSlider = settingsFields["bg-vpos"],
+    bgImgScaleInput = settingsFields["bg-scale"];
 
 let currentSettings = {};
 
@@ -172,12 +171,9 @@ function updateRender() {
         // enable bg img controls
         filePicker.disabled = false;
         bgImgOpacityInput.disabled = false;
-        bgImgHposSelect.disabled = false;
-        bgImgVposSelect.disabled = false;
-        bgImgStretch.disabled = false;
-        bgImgRatioToggle.disabled = false;
-
-        if (bgImgStretch.value == "none") bgImgRatioToggle.disabled = true;
+        bgImgHposSlider.disabled = false;
+        bgImgVposSlider.disabled = false;
+        bgImgScaleInput.disabled = false;
 
         bgFieldset.classList.remove("collapse");
 
@@ -187,10 +183,9 @@ function updateRender() {
         // disable bg img controls
         filePicker.disabled = true;
         bgImgOpacityInput.disabled = true;
-        bgImgHposSelect.disabled = true;
-        bgImgVposSelect.disabled = true;
-        bgImgStretch.disabled = true;
-        bgImgRatioToggle.disabled = true;
+        bgImgHposSlider.disabled = true;
+        bgImgVposSlider.disabled = true;
+        bgImgScaleInput.disabled = true;
 
         bgFieldset.classList.add("collapse");
 
@@ -270,133 +265,20 @@ function updateRender() {
             imgOpacity = currentSettings["bg-img-opacity"],
             imgW = img.naturalWidth,
             imgH = img.naturalHeight,
-            hpos = currentSettings["bg-img-hpos"],
-            vpos = currentSettings["bg-img-vpos"],
-            stretch = currentSettings["bg-img-stretch"],
-            preserveRatio = currentSettings["bg-img-ratio"];
+            hpos = currentSettings["bg-hpos"],
+            vpos = currentSettings["bg-vpos"],
+            scale = currentSettings["bg-scale"];
 
-        let dx, dy,
-            dw = imgW,
-            dh = imgH;
-
-        switch (stretch) {
-            case "none":
-                break;
-            case "stretch-h": {
-                let stretchFactor = getStretchFactor("stretch", "width");
-                dw = imgW * stretchFactor;
-                if (preserveRatio) dh = imgH * stretchFactor;
-                break;
-            }
-            case "stretch-v": {
-                let stretchFactor = getStretchFactor("stretch", "height");
-                dh = imgH * stretchFactor;
-                if (preserveRatio) dw = imgW * stretchFactor;
-                break;
-            }
-            case "stretch-hv": {
-                let hStretchFactor = getStretchFactor("stretch", "width");
-                let vStretchFactor = getStretchFactor("stretch", "height");
-
-                if (preserveRatio) {
-                    let finalStretchFactor = Math.max(hStretchFactor, vStretchFactor);
-                    dh = imgH * finalStretchFactor;
-                    dw = imgW * finalStretchFactor;
-                }
-                else {
-                    dh = imgH * vStretchFactor;
-                    dw = imgW * hStretchFactor;
-                }
-                break;
-            }
-            case "shrink-h": {
-                let stretchFactor = getStretchFactor("shrink", "width");
-                dw = imgW * stretchFactor;
-                if (preserveRatio) dh = imgH * stretchFactor;
-                break;
-            }
-            case "shrink-v": {
-                let stretchFactor = getStretchFactor("shrink", "height");
-                dh = imgH * stretchFactor;
-                if (preserveRatio) dw = imgW * stretchFactor;
-                break;
-            }
-            case "shrink-hv": {
-                let hStretchFactor = getStretchFactor("shrink", "width");
-                let vStretchFactor = getStretchFactor("shrink", "height");
-
-                if (preserveRatio) {
-                    let finalStretchFactor = Math.min(hStretchFactor, vStretchFactor);
-                    dh = imgH * finalStretchFactor;
-                    dw = imgW * finalStretchFactor;
-                }
-                else {
-                    dh = imgH * vStretchFactor;
-                    dw = imgW * hStretchFactor;
-                }
-                break;
-            }
-            default:
-                invalidValueError("BG image stretch", stretch);
-        }
-        
-        switch (hpos) {
-            case "left":
-                dx = 0;
-                break;
-            case "center":
-                dx = (c.width - dw) / 2;
-                break;
-            case "right":
-                dx = c.width - dw;
-                break;
-            default:
-                invalidValueError("BG image hpos", hpos);
-        }
-
-        switch (vpos) {
-            case "top":
-                dy = 0;
-                break;
-            case "center":
-                dy = (c.height - dh) / 2;
-                break;
-            case "bottom":
-                dy = c.height - dh;
-                break;
-            default:
-                invalidValueError("BG image vpos", vpos);
-        }
+        let dw = imgW * scale,
+            dh = imgH * scale,
+            dx = hpos * (dw + c.width) - dw,
+            dy = vpos * (dh + c.height) - dh;
+        // intended behavior: at hpos 0, dx = -1 * dw
+        //                    at hpos 1, dx = c.width
 
         ctx.globalAlpha = imgOpacity;
         ctx.drawImage(img, dx, dy, dw, dh);
         ctx.globalAlpha = 1;
-
-        function getStretchFactor(stretchType, dimensionType) {
-            let canvasDimension, imgDimension;
-
-            if (dimensionType == "width") {
-                canvasDimension = c.width;
-                imgDimension = imgW;
-            }
-            else if (dimensionType == "height") {
-                canvasDimension = c.height;
-                imgDimension = imgH;
-            }
-            else {
-                invalidValueError("dimensionType", dimensionType);
-            }
-
-            if (stretchType == "stretch") {
-                return Math.max(1, canvasDimension / imgDimension);
-            }
-            else if (stretchType == "shrink") {
-                return Math.min(1, canvasDimension / imgDimension);
-            }
-            else {
-                invalidValueError("stretchType", stretchType);
-            }
-        }
     }
 }
 
@@ -637,10 +519,9 @@ function updateFormFromLocalStorage() {
         "v-padding": 50,
         "use-bg-img": false,
         "bg-img-opacity": 0.9,
-        "bg-img-hpos": "center",
-        "bg-img-vpos": "bottom",
-        "bg-img-stretch": "none",
-        "bg-img-ratio": false,
+        "bg-hpos": 0.5,
+        "bg-vpos": 0.5,
+        "bg-scale": 1,
         "heading-size": 48,
         "heading-align": "center",
         "heading-text": "🎯 Today's Tasks",

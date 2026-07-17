@@ -21,6 +21,8 @@
 
             <p>Create a sleep screen for your X3 or X4 CrossPoint device with useful text!</p>
 
+            <p>Note: Due to changes to how the webserver handles CORS, currently requires the nightly build (7/16 or later) to work.</p>
+
             <p>
                 To upload directly to device, put device in File Transfer mode (join the same network or create a hotspot).
             </p>
@@ -102,10 +104,10 @@
                             <span class="setting-desc">Images that are too light will not show up correctly</span>
                         </span>
                         <span class="setting-control">
-                            <input type="number" name="bg-img-opacity" step="0.1">
+                            <input type="number" name="bg-img-opacity" step="0.1" min="0" max="1">
                         </span>
                     </label>
-                    <label class="setting-row">
+                    <!-- <label class="setting-row">
                         <span class="setting-name">Horizontal Position</span>
                         <span class="setting-control">
                             <select name="bg-img-hpos">
@@ -144,6 +146,27 @@
                         <span class="toggle-switch">
                             <input type="checkbox" name="bg-img-ratio">
                             <span class="toggle-slider"></span>
+                        </span>
+                    </label> -->
+
+                    <label class="setting-row">
+                        <span class="setting-name">Horizontal Position</span>
+                        <span class="setting-control">
+                            <input type="range" name="bg-hpos" min="0" max="1" step="0.01">
+                        </span>
+                    </label>
+
+                    <label class="setting-row">
+                        <span class="setting-name">Vertical Position</span>
+                        <span class="setting-control">
+                            <input type="range" name="bg-vpos" min="0" max="1" step="0.01">
+                        </span>
+                    </label>
+
+                    <label class="setting-row">
+                        <span class="setting-name">Scale</span>
+                        <span class="setting-control">
+                            <input type="number" name="bg-scale" min="0" step="0.1">
                         </span>
                     </label>
                 </fieldset>
