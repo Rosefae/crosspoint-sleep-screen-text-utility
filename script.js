@@ -54,6 +54,14 @@ function init() {
             // skip fieldsets
 
             const fieldName = field["name"];
+            // for radios, add entire group just once
+            if (fieldType === "radio") {
+                if (!Object.hasOwn(fields, fieldName)) {
+                    fields[fieldName] = form[fieldName];
+                }
+                continue;
+            }
+
             fields[fieldName] = field;
         }
 
