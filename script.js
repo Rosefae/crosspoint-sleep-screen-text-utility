@@ -72,6 +72,9 @@ function init() {
     globalThis.downloadBtn = document.getElementById("download");
     globalThis.uploadBtn = document.getElementById("upload");
 
+    globalThis.insCheckboxBtn = document.getElementById("ins-checkbox");
+    globalThis.insChecboxFilledBtn = document.getElementById("ins-checkbox-filled");
+
     globalThis.bgFieldset = document.getElementById("bg-fieldset");
     globalThis.messageContainer = document.getElementById("toast");
 
@@ -88,6 +91,8 @@ function init() {
     settingsForm.addEventListener("change", updateRender);
     downloadBtn.addEventListener("click", downloadBmp);
     uploadBtn.addEventListener("click", uploadBmp);
+    insCheckboxBtn.addEventListener("click", () => insertTextIntoBodyText("☐"));
+    insChecboxFilledBtn.addEventListener("click", () => insertTextIntoBodyText("☒"));
 }
 
 function updateRender() {
@@ -331,6 +336,17 @@ function updateRender() {
         ctx.drawImage(img, dx, dy, dw, dh);
         ctx.globalAlpha = 1;
     }
+}
+
+function insertTextIntoBodyText(textToInsert) {
+    const cursorPos = settingsFields["body-text"].selectionStart;
+    const original = settingsFields["body-text"].value;
+    
+    const result = original.slice(0, cursorPos) + textToInsert + original.slice(cursorPos);
+
+    settingsFields["body-text"].value = result;
+
+    settingsFields["body-text"].focus();
 }
 
 function updateBgImgData(file) {

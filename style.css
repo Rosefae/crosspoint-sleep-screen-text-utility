@@ -105,9 +105,30 @@ form {
     min-height: 2rem;
 }
 
+.setting-name {
+    min-width: 3rem;
+}
+
 .setting-desc {
     display: inline-block;
     font-size: 0.7em;
+}
+
+.setting-control-extras {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+    gap: 0.4rem;
+
+    button {
+        border: 0;
+        padding: 0.3rem 0.5rem;
+        background-color: var(--toggle-bg);
+        border-radius: 4px;
+        min-width: calc(50% - 0.2rem);
+        flex-grow: 1;
+    }
 }
 
 .setting-control-textarea {
@@ -123,7 +144,7 @@ form {
     font-size: 0.95em;
     background: var(--card-bg);
     width: 100%;
-    height: 6rem;
+    height: 7rem;
     box-sizing: border-box;
     resize: vertical;
     display: block;
