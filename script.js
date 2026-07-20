@@ -16,10 +16,12 @@ const defaultSettings = { // defaults
     "bg-hpos": 0.5,
     "bg-vpos": 0.5,
     "bg-scale": 1,
+    "heading-font": "sour_gummy",
     "heading-size": 48,
     "heading-align": "center",
     "heading-text": "🎯 Today's Tasks",
     "gap-size": 40,
+    "body-font": "bitter",
     "body-size": 32,
     "body-ln": 1.6,
     "body-align": "left",
@@ -27,6 +29,16 @@ const defaultSettings = { // defaults
     "body-text": "☐ Some task\n☐ Some other task\n☒ Completed task\n☐ Here is a long task showing hanging indentation: Lorem ipsum dolor sit amet, consectetur adipiscing elit. etc etc",
     "upload-config": true
 }
+
+const fonts = [
+    "Bitter",
+    "Caveat",
+    "Geist Mono",
+    "Oswald",
+    "Quicksand",
+    "Roboto",
+    "Sour Gummy"
+]
 
 let currentSettings = {};
 
@@ -86,7 +98,32 @@ function init() {
     globalThis.bgImgVposSlider = settingsFields["bg-vpos"];
     globalThis.bgImgScaleInput = settingsFields["bg-scale"];
 
-    updateFormFromLocalStorage();
+    // populate fonts
+    globalThis.fontFaces = {};
+    let fontLoadPromises = [];
+    for (const fontName of fonts) {
+        const fontValue = fontName.toLowerCase().replaceAll(" ", "_");
+        const optH = document.createElement("option");
+        const optB = document.createElement("option");
+        optH.value = fontValue;
+        optB.value = fontValue;
+        optH.text = fontName;
+        optB.text = fontName;
+        settingsFields["heading-font"].add(optH);
+        settingsFields["body-font"].add(optB);
+
+        const fontFile = new FontFace(
+            fontValue,
+            `url("fonts/${fontValue}.ttf")`,
+            { weight: '400 700' }
+        );
+        globalThis.fontFaces[fontValue] = fontFile;
+        document.fonts.add(fontFile);
+        fontLoadPromises.push(fontFile.load());
+    }
+
+    Promise.all(fontLoadPromises).then(updateFormFromLocalStorage);
+
     loadConfigBtn.addEventListener("click", loadConfigFromDevice);
     settingsForm.addEventListener("change", updateRender);
     downloadBtn.addEventListener("click", downloadBmp);
@@ -95,7 +132,7 @@ function init() {
     insChecboxFilledBtn.addEventListener("click", () => insertTextIntoBodyText("☒"));
 }
 
-function updateRender() {
+async function updateRender() {
     currentSettings = getSettingsFromForm();
     console.log("Updating Canvas");
     // Clear canvas
@@ -154,8 +191,11 @@ function updateRender() {
     ctx.textBaseline = "top";
 
     // Heading text
+    const headingFont = currentSettings["heading-font"];
     const headingText = currentSettings["heading-text"];
-    ctx.font = `bold ${headingSize}px Sour Gummy`;
+
+    ctx.font = `bold ${headingSize}px ${headingFont}`;
+
     let headingXPos;
     switch (currentSettings["heading-align"]) {
         case "left":
@@ -177,7 +217,8 @@ function updateRender() {
 
     // Body text
     const bodyText = currentSettings["body-text"];
-    ctx.font = `${bodySize}px Bitter`;
+    const bodyFont = currentSettings["body-font"];
+    ctx.font = `${bodySize}px ${bodyFont}`;
 
     let bodyXPos,
         firstLineIndent = 0,
@@ -251,6 +292,24 @@ function updateRender() {
     saveSettingsToLocalStorage();
 
     // Helper functions
+
+    // async function setFont(fontFace, size, bold = false) {
+    //     console.log("blorp");
+    //     if (!document.fonts.check(`${size}px ${fontFace}`)) {
+    //         console.log("Font not yet loaded");
+    //         const fontFile = new FontFace(fontFace, `url("fonts/${fontFace}.ttf")`);
+    //         document.fonts.add(fontFile);
+    //         console.log(`Loading ${fontFace}`);
+    //         await fontFile.load();
+    //         console.log(`${fontFace} loaded`);
+    //     }
+
+    //     let fontString = `${size}px ${fontFace}`;
+    //     if (bold) {
+    //         fontString = "bold " + fontString;
+    //     }
+    //     return fontString;
+    // }
 
     function writeLineWithWrap(text, textSize, lineHeight, startXPos, indent = false) {
         const words = text.split(" ");

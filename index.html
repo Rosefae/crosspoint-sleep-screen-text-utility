@@ -5,12 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="UTF-8">
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap"
-            rel="stylesheet">
-
         <link rel="stylesheet" href="crosspoint.css">
         <link rel="stylesheet" href="style.css">
         <link rel="icon" href="favicon.png">
@@ -31,12 +25,6 @@
             <p>Alternatively, download the file and place it manually in the root of the SD card (make sure the file is named
             <code>sleep.bmp</code>).</p>
         </header>
-
-        <div class="font-loader">
-            <!--  force fonts to load before canvas starts drawing  -->
-            <span style="font-family: 'Sour Gummy'">Sour Gummy</span>
-            <span style="font-family: 'Bitter'">Bitter</span>
-        </div>
         
         <main>
             <div class="render-wrapper">
@@ -141,6 +129,13 @@
             
                 <fieldset class="opts-heading card">
                     <legend>Heading</legend>
+
+                    <label class="setting-row">
+                        <span class="setting-name">Heading Font</span>
+                        <span class="setting-control">
+                            <select name="heading-font"></select>
+                        </span>
+                    </label>
             
                     <label class="setting-row">
                         <span class="setting-name">Heading Size (px)</span>
@@ -177,6 +172,13 @@
             
                 <fieldset class="opts-body card">
                     <legend>Body Text</legend>
+
+                    <label class="setting-row">
+                        <span class="setting-name">Body Text Font</span>
+                        <span class="setting-control">
+                            <select name="body-font"></select>
+                        </span>
+                    </label>
             
                     <label class="setting-row">
                         <span class="setting-name">Body Text Size (px)</span>
