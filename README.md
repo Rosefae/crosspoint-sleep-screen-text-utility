@@ -8,8 +8,7 @@ This is meant to be a standalone web utility that generates the `sleep.bmp` file
 
 ## Possible future features
 
-- Font drop down to select different fonts. Probably just a small list of different fonts instead of polling the whole of Google Fonts.
-    - `queryLocalFonts()` to allow users to use any font installed on their local machine (not available yet in FF or mobile browsers)
+- Once `queryLocalFonts()` is x-browser available, use it to allow users to use any font installed on their local machine (not available yet in FF or mobile browsers)
 - Improve bitmap saving to maybe be smaller / grayscale channels only
 - Apply dithering somehow to better work with the hardware display
 - PWA? Would need to serve the fonts locally instead of using Google Fonts API
