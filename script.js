@@ -42,6 +42,8 @@ const fonts = [
 
 let currentSettings = {};
 
+let currentlyRendering = false;
+
 function init() {
     globalThis.c = document.getElementById("render");
     globalThis.ctx = c.getContext("2d");
@@ -133,7 +135,14 @@ function init() {
 }
 
 async function updateRender() {
+
+    while (currentlyRendering == true) {
+        await new Promise(r => setTimeout(r, 100));
+        // make sure any previous ongoing rendering is completed before proceeding
+    }
+
     currentSettings = getSettingsFromForm();
+    currentlyRendering = true;
     console.log("Updating Canvas");
     // Clear canvas
     ctx.clearRect(0, 0, c.width, c.height);
@@ -289,27 +298,9 @@ async function updateRender() {
         fillBackgroundColor();
     }
 
+    currentlyRendering = false;
+
     saveSettingsToLocalStorage();
-
-    // Helper functions
-
-    // async function setFont(fontFace, size, bold = false) {
-    //     console.log("blorp");
-    //     if (!document.fonts.check(`${size}px ${fontFace}`)) {
-    //         console.log("Font not yet loaded");
-    //         const fontFile = new FontFace(fontFace, `url("fonts/${fontFace}.ttf")`);
-    //         document.fonts.add(fontFile);
-    //         console.log(`Loading ${fontFace}`);
-    //         await fontFile.load();
-    //         console.log(`${fontFace} loaded`);
-    //     }
-
-    //     let fontString = `${size}px ${fontFace}`;
-    //     if (bold) {
-    //         fontString = "bold " + fontString;
-    //     }
-    //     return fontString;
-    // }
 
     function writeLineWithWrap(text, textSize, lineHeight, startXPos, indent = false) {
         const words = text.split(" ");
@@ -418,7 +409,11 @@ function updateBgImgData(file) {
     reader.readAsDataURL(file);
 }
 
-function canvasToBmp() {
+async function canvasToBmp() {
+    while (currentlyRendering == true) {
+        await new Promise(r => setTimeout(r, 100));
+        // make sure rendering is completed before proceeding
+    }
     // https://stackoverflow.com/questions/29652307/canvas-unable-to-generate-bmp-image-dataurl-in-chrome
     
     /*! canvas-to-bmp version 1.0 ALPHA
@@ -491,8 +486,8 @@ function canvasToBmp() {
     function setU32(data) { view.setUint32(pos, data, true); pos += 4 }
 }
 
-function downloadBmp() {
-    const bmp = canvasToBmp();
+async function downloadBmp() {
+    const bmp = await canvasToBmp();
     const url = URL.createObjectURL(bmp);
     const link = document.createElement('a');
     link.href = url;
@@ -530,7 +525,7 @@ async function uploadBmp() {
     const includeSettings = currentSettings["upload-config"];
 
     // Generate files
-    const bmpFile = canvasToBmp();
+    const bmpFile = await canvasToBmp();
     
     let settingsToSave = {},
         configFile;
