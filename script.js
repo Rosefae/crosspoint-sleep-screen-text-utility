@@ -389,13 +389,16 @@ async function updateRender() {
 }
 
 function insertTextIntoBodyText(textToInsert) {
-    const cursorPos = settingsFields["body-text"].selectionStart;
+    let cursorPos = settingsFields["body-text"].selectionStart;
     const original = settingsFields["body-text"].value;
     
     const result = original.slice(0, cursorPos) + textToInsert + original.slice(cursorPos);
 
     settingsFields["body-text"].value = result;
 
+    cursorPos += textToInsert.length;
+    settingsFields["body-text"].selectionStart = cursorPos;
+    settingsFields["body-text"].selectionEnd = cursorPos;
     settingsFields["body-text"].focus();
 }
 
