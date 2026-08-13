@@ -1,4 +1,4 @@
-const VERSION = "v1";
+const VERSION = "v1.0.1-hotfix";
 const CACHE_NAME = `sleepnote-crosspoint-${VERSION}`;
 
 const APP_STATIC_RESOURCES = [
@@ -54,17 +54,5 @@ self.addEventListener("fetch", (event) => {
         event.respondWith(caches.match("./"));
         return;
     }
-
-    // other events
-    event.respondWith(
-        (async () => {
-            const cache = await caches.open(CACHE_NAME);
-            const cachedResponse = await cache.match(event.request.url);
-            if (cachedResponse) {
-                return cachedResponse;
-            }
-            return new Response(null, { status: 404 });
-        })()
-    );
 });
 
